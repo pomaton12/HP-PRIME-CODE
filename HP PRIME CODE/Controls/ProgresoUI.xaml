@@ -1,0 +1,29 @@
+﻿<ui:UiWindow x:Class="HP_PRIME_CODE.Controls.ProgresoUI"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HP_PRIME_CODE.Controls"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+             
+         mc:Ignorable="d"
+             Background="{DynamicResource ColorCustomTheme}"
+        MinHeight="200" MinWidth="400"
+        Title="Viga H - Cálculo de Estructuras"
+        Height="200" Width="400"
+        ExtendsContentIntoTitleBar="True"
+        WindowBackdropType="None"
+        WindowCornerPreference="Round"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid >
+        <StackPanel Margin="20">
+            <Label x:Name="ProgressLabel" Content="Procesando..." Foreground="{DynamicResource ColorCustomNegroG}"/>
+            <ProgressBar x:Name="ProgressBar" Margin="0,10,0,0" Height="25" Foreground="{DynamicResource ColorIconBlue}"/>
+            <Image Margin="0 20 0 0" gif:ImageBehavior.AnimatedSource="/Imagen/transfer-unscreen.gif" Stretch="Uniform" Width="200" />
+
+        </StackPanel>
+    </Grid>
+    
+</ui:UiWindow>

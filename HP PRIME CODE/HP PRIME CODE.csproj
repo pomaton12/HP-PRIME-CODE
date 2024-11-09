@@ -1,0 +1,107 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>HP_PRIME_CODE</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Imagen\Hp_Prime_ico.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="FuentesIcon\chinese.msyh.ttf" />
+    <None Remove="FuentesIcon\CONSOLA.TTF" />
+    <None Remove="FuentesIcon\FiraMono-Bold.ttf" />
+    <None Remove="FuentesIcon\FiraMono-Regular.ttf" />
+    <None Remove="FuentesIcon\IconHP.ttf" />
+    <None Remove="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
+    <None Remove="FuentesIcon\Menlo-Regular.ttf" />
+    <None Remove="FuentesIcon\PrimeSansMono.ttf" />
+    <None Remove="FuentesIcon\Segoe Fluent Icons.ttf" />
+    <None Remove="Imagen\Hp_Prime_ico.ico" />
+    <None Remove="Imagen\Hp_Prime_ico.svg" />
+    <None Remove="Imagen\Inicio\Alinear.svg" />
+    <None Remove="Imagen\Inicio\borrar.svg" />
+    <None Remove="Imagen\Inicio\buscar_light.svg" />
+    <None Remove="Imagen\Inicio\copy.svg" />
+    <None Remove="Imagen\Inicio\cut.svg" />
+    <None Remove="Imagen\Inicio\file_dark.svg" />
+    <None Remove="Imagen\Inicio\file_light.svg" />
+    <None Remove="Imagen\Inicio\folder.svg" />
+    <None Remove="Imagen\Inicio\paste.svg" />
+    <None Remove="Imagen\Inicio\print_light.svg" />
+    <None Remove="Imagen\Inicio\replace.svg" />
+    <None Remove="Imagen\Inicio\saveas_dark.svg" />
+    <None Remove="Imagen\Inicio\saveas_light.svg" />
+    <None Remove="Imagen\Inicio\save_light.svg" />
+    <None Remove="Imagen\Inicio\selected.svg" />
+    <None Remove="Imagen\Inicio\send_light.svg" />
+    <None Remove="Imagen\transfer-unscreen.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Imagen\Hp_Prime_ico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.3" />
+    <PackageReference Include="WPF-UI" Version="2.1.0" />
+    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="FuentesIcon\chinese.msyh.ttf" />
+    <Resource Include="FuentesIcon\CONSOLA.TTF" />
+    <Resource Include="FuentesIcon\FiraMono-Bold.ttf" />
+    <Resource Include="FuentesIcon\FiraMono-Regular.ttf" />
+    <Resource Include="FuentesIcon\IconHP.ttf" />
+    <Resource Include="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
+    <Resource Include="FuentesIcon\Menlo-Regular.ttf" />
+    <Resource Include="FuentesIcon\PrimeSansMono.ttf" />
+    <Resource Include="FuentesIcon\Segoe Fluent Icons.ttf" />
+    <Resource Include="Imagen\Hp_Prime_ico.ico" />
+    <Resource Include="Imagen\Hp_Prime_ico.svg" />
+    <Resource Include="Imagen\Inicio\Alinear.svg" />
+    <Resource Include="Imagen\Inicio\borrar.svg" />
+    <Resource Include="Imagen\Inicio\buscar_light.svg" />
+    <Resource Include="Imagen\Inicio\copy.svg" />
+    <Resource Include="Imagen\Inicio\cut.svg" />
+    <Resource Include="Imagen\Inicio\file_dark.svg" />
+    <Resource Include="Imagen\Inicio\file_light.svg" />
+    <Resource Include="Imagen\Inicio\folder.svg" />
+    <Resource Include="Imagen\Inicio\paste.svg" />
+    <Resource Include="Imagen\Inicio\print_light.svg" />
+    <Resource Include="Imagen\Inicio\replace.svg" />
+    <Resource Include="Imagen\Inicio\saveas_dark.svg" />
+    <Resource Include="Imagen\Inicio\saveas_light.svg" />
+    <Resource Include="Imagen\Inicio\save_light.svg" />
+    <Resource Include="Imagen\Inicio\selected.svg" />
+    <Resource Include="Imagen\Inicio\send_light.svg" />
+    <Resource Include="Imagen\transfer-unscreen.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Estilo\HPPPL.xshd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FilesNuevo\NewCodeHP.hpprgm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

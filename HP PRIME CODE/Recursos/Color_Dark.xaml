@@ -1,0 +1,140 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <Color x:Key="HexCustomColorBlanco">#000000</Color>
+    <Color x:Key="HexCustomColorNegro">#FFFFFF</Color>
+
+    <SolidColorBrush x:Key="ColorCustomBlancoG" Color="{DynamicResource  HexCustomColorBlanco}" />
+    <SolidColorBrush x:Key="ColorCustomNegroG" Color="{DynamicResource  HexCustomColorNegro}" />
+
+    <Color x:Key="HexCustomFondoResult">#191919</Color>
+    <Color x:Key="HexCustomDefault">#444444</Color>
+    <Color x:Key="HexCustomTheme">#1F1F1F</Color>
+
+    <Color x:Key="HexCustomSelectMenu">#03c1f4</Color>
+    <Color x:Key="HexCustomMouseOver">#292929</Color>
+    <Color x:Key="HexCustomSelectRegla">#50292929</Color>
+
+    <Color x:Key="HexCustomPP">#505050</Color>
+    <SolidColorBrush x:Key="ColorBorderPP" Color="{DynamicResource  HexCustomPP}" />
+    <SolidColorBrush x:Key="ColorCustomTheme" Color="{DynamicResource  HexCustomTheme}" />
+
+    <SolidColorBrush x:Key="ColorCustomRegla" Color="{DynamicResource  HexCustomSelectRegla}" />
+
+    <!-- TODO PARA OPEN -->
+    <Color x:Key="HexCustomOpenLine">#666666</Color>
+    <Color x:Key="HexCustomOpenFondoButon">#292929</Color>
+    <Color x:Key="HexCustomOpenFondoButonOver">#333333</Color>
+    <Color x:Key="HexCustomOpenFondoButonLine">#525252</Color>
+    <Color x:Key="HexCustomOpenFondoButonSelected">#141414</Color>
+
+    <SolidColorBrush x:Key="ColorOpenFondoButonLine" Color="{DynamicResource  HexCustomOpenFondoButonLine}" />
+    <SolidColorBrush x:Key="ColorOpenFondoButonSelected" Color="{DynamicResource  HexCustomOpenFondoButonSelected}" />
+    <SolidColorBrush x:Key="ColorOpenFondoButon" Color="{DynamicResource  HexCustomOpenFondoButon}" />
+    <SolidColorBrush x:Key="ColorFondoButonOver" Color="{DynamicResource  HexCustomOpenFondoButonOver}" />
+    <SolidColorBrush x:Key="ColorOpenLine" Color="{DynamicResource  HexCustomOpenLine}" />
+
+    <!-- TODO PARA VIGA PANEL PRINCIPAL  -->
+    <Color x:Key="HexCustomLine">#505050</Color>
+    <Color x:Key="HexCustomControlButon">#49B7ED</Color>
+
+    <SolidColorBrush x:Key="ColorLineTools" Color="{DynamicResource  HexCustomLine}" />
+    <!--botonesTop-->
+    <Color x:Key="HexCustomMouseOverPanelButon">#383838</Color>
+    <Color x:Key="HexCustomSelectedPanelButon">#99363B3F</Color>
+
+    <Color x:Key="HexCustomPanelVigaUI">#212830</Color>
+
+    <SolidColorBrush x:Key="ColorMouseOverPanelButon" Color="{DynamicResource  HexCustomMouseOverPanelButon}" />
+    <SolidColorBrush x:Key="ColorSelectedPanelButon" Color="{DynamicResource  HexCustomSelectedPanelButon}" />
+    <SolidColorBrush x:Key="ColorPanelVigaUI" Color="{DynamicResource  HexCustomPanelVigaUI}" />
+
+    <!-- TODO PARA VIGA PANEL PRINCIPAL Para MessageBox -->
+    <Color x:Key="HexCustomMessageBoxTop">#272727</Color>
+    <Color x:Key="HexCustomMessageBoxBot">#191919</Color>
+    <Color x:Key="HexCustomMessageBoxButton">#3DABFF</Color>
+    <Color x:Key="HexCustomMessageBoxOver">#57D5F7</Color>
+
+    <Color x:Key="HexCustomLineasReglas">#797775</Color>
+
+    <Color x:Key="HexCustomMessageBoxLine">#414141</Color>
+    <Color x:Key="HexCustomMessageBoxButtonCerrar">#444444</Color>
+    <Color x:Key="HexCustomMessageBoxButtonCerrarOver">#191919</Color>
+    <SolidColorBrush x:Key="ColorMessageBoxButtonCerrar" Color="{DynamicResource  HexCustomMessageBoxButtonCerrar}" />
+    <SolidColorBrush x:Key="ColorMessageBoxButtonCerrarOver" Color="{DynamicResource  HexCustomMessageBoxButtonCerrarOver}" />
+
+    <SolidColorBrush x:Key="ColorMessageBoxLine" Color="{DynamicResource  HexCustomMessageBoxLine}" />
+    <SolidColorBrush x:Key="ColorMessageBoxTop" Color="{DynamicResource  HexCustomMessageBoxTop}" />
+
+    <SolidColorBrush x:Key="ColorLineasReglas" Color="{DynamicResource  HexCustomLineasReglas}" />
+
+    <!-- TODO PARA ICONO -->
+    <system:String x:Key="HexColorViga">#EAE9E9</system:String>
+    <Color x:Key="HexCustomColorIcon">#EAE9E9</Color>
+    <Color x:Key="HexCustomColorIconBlue">#49B7ED</Color>
+
+    <SolidColorBrush x:Key="ColorIconNormal" Color="{DynamicResource  HexCustomColorIcon}" />
+    <SolidColorBrush x:Key="ColorIconBlue" Color="{DynamicResource  HexCustomColorIconBlue}" />
+
+    <!-- PARA UNDO Y REDO -->
+    <Color x:Key="HexCustomUndoRedoActive">#D4D4D4</Color>
+    <Color x:Key="HexCustomUndoRedoDesactive">#6E6E6E</Color>
+
+    <SolidColorBrush x:Key="ColoUndoRedoActive" Color="{DynamicResource  HexCustomUndoRedoActive}" />
+    <SolidColorBrush x:Key="ColorUndoRedoDesactive" Color="{DynamicResource  HexCustomUndoRedoDesactive}" />
+
+    <!-- PARA borde de perfil imagen -->
+    <Color x:Key="HexCustomPerfilColor">#424242</Color>
+
+    <SolidColorBrush x:Key="ColorBorderPerfil" Color="{DynamicResource  HexCustomPerfilColor}" />
+
+    <!-- COLORES DE WINDOWS 11 -->
+    <Color x:Key="HexCustomW11Red">#FF5555</Color>
+    <Color x:Key="HexCustomW11Verde">#73DD83</Color>
+
+    <SolidColorBrush x:Key="ColorW11Red" Color="{DynamicResource  HexCustomW11Red}" />
+    <SolidColorBrush x:Key="ColorW11Verde" Color="{DynamicResource  HexCustomW11Verde}" />
+
+    <!-- PARA TOOLTIP -->
+    <Color x:Key="HexCustomToolTip">#2C2E30</Color>
+    <SolidColorBrush x:Key="ColorToolTip" Color="{DynamicResource  HexCustomToolTip}" />
+
+    <!-- PARA COLOR DE INFO DE GRAFICOS VIGA -->
+    <Color x:Key="HexCustomMouseOverTextViga">#40FF00</Color>
+    <SolidColorBrush x:Key="ColorMouseOverTextViga" Color="{DynamicResource  HexCustomMouseOverTextViga}" />
+
+    <!-- MOUSE OVER BOTON TITLE -->
+    <Color x:Key="HexCustomMouseOverTitle">#99363B3F</Color>
+    <SolidColorBrush x:Key="ColorMouseMouseOverTitle" Color="{DynamicResource  HexCustomMouseOverTitle}" />
+
+    <!-- COLORES UNICOS DYNAMICOS PARA APPS -->
+    <Color x:Key="HexCustomBlancoGeneric">#FFFFFF</Color>
+    <SolidColorBrush x:Key="ColorBlancoGeneric" Color="{DynamicResource  HexCustomBlancoGeneric}" />
+
+
+    <!-- COLORES CONTEXT MENU -->
+    <Color x:Key="HexCustomContextBorde">#424242</Color>
+    <Color x:Key="HexCustomContextText">#C2C2C2</Color>
+    <Color x:Key="HexCustomContextTMouseOver">#04395E</Color>
+
+    <SolidColorBrush x:Key="ColorContextBorde" Color="{DynamicResource  HexCustomContextBorde}" />
+    <SolidColorBrush x:Key="ColorContextText" Color="{DynamicResource  HexCustomContextText}" />
+    <SolidColorBrush x:Key="ColorContextMouseOver" Color="{DynamicResource  HexCustomContextTMouseOver}" />
+
+    <!-- PARA PANEL BUSCAR -->
+    <Color x:Key="HexCustomSearchFondo">#F3F3F3</Color>
+
+    <SolidColorBrush x:Key="ColorSearchFondo" Color="{DynamicResource  HexCustomSearchFondo}" />
+
+    <!--  DynamicScrollBar  -->
+    <Color x:Key="AcrylicBackgroundFillColorDefault">#2C2C2C</Color>
+    <Color x:Key="SubtleFillColorTransparent">#00FFFFFF</Color>
+    <Color x:Key="ControlStrongFillColorDefault">#8BFFFFFF</Color>
+
+    <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="{StaticResource AcrylicBackgroundFillColorDefault}" />
+    <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="{StaticResource SubtleFillColorTransparent}" />
+    <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{StaticResource ControlStrongFillColorDefault}" />
+    <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{StaticResource ControlStrongFillColorDefault}" />
+
+</ResourceDictionary>
