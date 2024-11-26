@@ -11,33 +11,54 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="FuentesIcon\chinese.msyh.ttf" />
+    <None Remove="FuentesIcon\CascadiaMono-ExtraLight.otf" />
+    <None Remove="FuentesIcon\CascadiaMono-Light.otf" />
+    <None Remove="FuentesIcon\CascadiaMono-Regular.otf" />
+    <None Remove="FuentesIcon\CascadiaMono-SemiLight.otf" />
     <None Remove="FuentesIcon\CONSOLA.TTF" />
-    <None Remove="FuentesIcon\FiraMono-Bold.ttf" />
+    <None Remove="FuentesIcon\Courier.ttf" />
     <None Remove="FuentesIcon\FiraMono-Regular.ttf" />
     <None Remove="FuentesIcon\IconHP.ttf" />
     <None Remove="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
     <None Remove="FuentesIcon\Menlo-Regular.ttf" />
+    <None Remove="FuentesIcon\mono821n.TTF" />
     <None Remove="FuentesIcon\PrimeSansMono.ttf" />
     <None Remove="FuentesIcon\Segoe Fluent Icons.ttf" />
     <None Remove="Imagen\Hp_Prime_ico.ico" />
     <None Remove="Imagen\Hp_Prime_ico.svg" />
-    <None Remove="Imagen\Inicio\Alinear.svg" />
-    <None Remove="Imagen\Inicio\borrar.svg" />
+    <None Remove="Imagen\Inicio\Alinear_Dark.svg" />
+    <None Remove="Imagen\Inicio\Alinear_Light.svg" />
+    <None Remove="Imagen\Inicio\Borrar_Dark.svg" />
+    <None Remove="Imagen\Inicio\Borrar_Light.svg" />
+    <None Remove="Imagen\Inicio\Buscar_Dark.svg" />
     <None Remove="Imagen\Inicio\buscar_light.svg" />
-    <None Remove="Imagen\Inicio\copy.svg" />
-    <None Remove="Imagen\Inicio\cut.svg" />
+    <None Remove="Imagen\Inicio\Copy_Dark.svg" />
+    <None Remove="Imagen\Inicio\Copy_Light.svg" />
+    <None Remove="Imagen\Inicio\Cut_Dark.svg" />
+    <None Remove="Imagen\Inicio\Cut_Light.svg" />
     <None Remove="Imagen\Inicio\file_dark.svg" />
     <None Remove="Imagen\Inicio\file_light.svg" />
-    <None Remove="Imagen\Inicio\folder.svg" />
-    <None Remove="Imagen\Inicio\paste.svg" />
+    <None Remove="Imagen\Inicio\Folder_Dark.svg" />
+    <None Remove="Imagen\Inicio\Folder_Light.svg" />
+    <None Remove="Imagen\Inicio\Paste_Dark.svg" />
+    <None Remove="Imagen\Inicio\Paste_Light.svg" />
+    <None Remove="Imagen\Inicio\Print_Dark.svg" />
     <None Remove="Imagen\Inicio\print_light.svg" />
-    <None Remove="Imagen\Inicio\replace.svg" />
+    <None Remove="Imagen\Inicio\Replace_Dark.svg" />
+    <None Remove="Imagen\Inicio\Replace_Light.svg" />
     <None Remove="Imagen\Inicio\saveas_dark.svg" />
     <None Remove="Imagen\Inicio\saveas_light.svg" />
+    <None Remove="Imagen\Inicio\Save_Dark.svg" />
     <None Remove="Imagen\Inicio\save_light.svg" />
-    <None Remove="Imagen\Inicio\selected.svg" />
+    <None Remove="Imagen\Inicio\Selected_Dark.svg" />
+    <None Remove="Imagen\Inicio\Selected_Light.svg" />
     <None Remove="Imagen\Inicio\send_light.svg" />
+    <None Remove="Imagen\MessageBox\afirmation.png" />
+    <None Remove="Imagen\MessageBox\caution.png" />
+    <None Remove="Imagen\MessageBox\error.png" />
+    <None Remove="Imagen\MessageBox\info.png" />
+    <None Remove="Imagen\MessageBox\interrogation.png" />
+    <None Remove="Imagen\MessageBox\none.png" />
     <None Remove="Imagen\transfer-unscreen.gif" />
   </ItemGroup>
 
@@ -46,40 +67,63 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Antlr" Version="3.5.0.2" />
     <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+    <PackageReference Include="DotNetProjects.SVGImage" Version="5.2.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.3" />
-    <PackageReference Include="WPF-UI" Version="2.1.0" />
+    <PackageReference Include="WPF-UI" Version="3.0.5" />
     <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="FuentesIcon\chinese.msyh.ttf" />
+    <Resource Include="FuentesIcon\CascadiaMono-ExtraLight.otf" />
+    <Resource Include="FuentesIcon\CascadiaMono-Light.otf" />
+    <Resource Include="FuentesIcon\CascadiaMono-SemiLight.otf" />
     <Resource Include="FuentesIcon\CONSOLA.TTF" />
-    <Resource Include="FuentesIcon\FiraMono-Bold.ttf" />
+    <Resource Include="FuentesIcon\Courier.ttf" />
     <Resource Include="FuentesIcon\FiraMono-Regular.ttf" />
     <Resource Include="FuentesIcon\IconHP.ttf" />
     <Resource Include="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
     <Resource Include="FuentesIcon\Menlo-Regular.ttf" />
+    <Resource Include="FuentesIcon\mono821n.TTF" />
     <Resource Include="FuentesIcon\PrimeSansMono.ttf" />
     <Resource Include="FuentesIcon\Segoe Fluent Icons.ttf" />
     <Resource Include="Imagen\Hp_Prime_ico.ico" />
     <Resource Include="Imagen\Hp_Prime_ico.svg" />
-    <Resource Include="Imagen\Inicio\Alinear.svg" />
-    <Resource Include="Imagen\Inicio\borrar.svg" />
-    <Resource Include="Imagen\Inicio\buscar_light.svg" />
-    <Resource Include="Imagen\Inicio\copy.svg" />
-    <Resource Include="Imagen\Inicio\cut.svg" />
-    <Resource Include="Imagen\Inicio\file_dark.svg" />
-    <Resource Include="Imagen\Inicio\file_light.svg" />
-    <Resource Include="Imagen\Inicio\folder.svg" />
-    <Resource Include="Imagen\Inicio\paste.svg" />
-    <Resource Include="Imagen\Inicio\print_light.svg" />
-    <Resource Include="Imagen\Inicio\replace.svg" />
-    <Resource Include="Imagen\Inicio\saveas_dark.svg" />
-    <Resource Include="Imagen\Inicio\saveas_light.svg" />
-    <Resource Include="Imagen\Inicio\save_light.svg" />
-    <Resource Include="Imagen\Inicio\selected.svg" />
+    <Resource Include="Imagen\Inicio\Alinear_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Alinear_Light.svg" />
+    <Resource Include="Imagen\Inicio\Borrar_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Borrar_Light.svg" />
+    <Resource Include="Imagen\Inicio\Buscar_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Buscar_Light.svg" />
+    <Resource Include="Imagen\Inicio\Copy_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Copy_Light.svg" />
+    <Resource Include="Imagen\Inicio\Cut_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Cut_Light.svg" />
+    <Resource Include="Imagen\Inicio\File_Dark.svg" />
+    <Resource Include="Imagen\Inicio\File_Light.svg" />
+    <Resource Include="Imagen\Inicio\Folder_Light.svg" />
+    <Resource Include="Imagen\Inicio\Folder_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Paste_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Paste_Light.svg" />
+    <Resource Include="Imagen\Inicio\Print_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Print_Light.svg" />
+    <Resource Include="Imagen\Inicio\Replace_Light.svg" />
+    <Resource Include="Imagen\Inicio\Replace_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Saveas_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Saveas_Light.svg" />
+    <Resource Include="Imagen\Inicio\Save_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Save_Light.svg" />
+    <Resource Include="Imagen\Inicio\Selected_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Selected_Light.svg" />
     <Resource Include="Imagen\Inicio\send_light.svg" />
+    <Resource Include="Imagen\MessageBox\afirmation.png" />
+    <Resource Include="Imagen\MessageBox\caution.png" />
+    <Resource Include="Imagen\MessageBox\error.png" />
+    <Resource Include="Imagen\MessageBox\info.png" />
+    <Resource Include="Imagen\MessageBox\interrogation.png" />
+    <Resource Include="Imagen\MessageBox\none.png" />
     <Resource Include="Imagen\transfer-unscreen.gif" />
   </ItemGroup>
 
@@ -92,7 +136,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Estilo\HPPPL.xshd">
+    <None Update="Estilo\HPPPL_Dark.xshd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Estilo\HPPPL_Light.xshd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FilesNuevo\NewCodeHP.hpprgm">

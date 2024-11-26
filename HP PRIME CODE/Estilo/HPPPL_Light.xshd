@@ -1,0 +1,119 @@
+﻿<SyntaxDefinition name="HPPPL_Light"
+    xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+<Color name="Comment" foreground="Green" />
+<Color name="String" foreground="#A31515" />
+<Color name="Xml" foreground="Orange" />
+<!-- This is the main ruleset. -->
+<RuleSet>
+    <Span color="Comment" begin="//" />
+    <Span color="Comment" multiline="true" 
+       begin="/\*" end="\*/" />
+
+
+    <Span color="String">
+        <Begin>"</Begin>
+        <End>"</End>
+        <RuleSet>
+            <!-- nested span for escape sequences -->
+            <Span begin="\\" end="." />
+        </RuleSet>
+    </Span>
+
+  <Span color="Xml" multiline="false">
+    <Begin>spaz</Begin>
+    <End>spaz</End>
+  </Span>
+
+    <Keywords foreground="DarkViolet">
+        <Word>BEGIN</Word>
+        <Word>END</Word>
+        <Word>RETURN</Word>
+        <Word>KILL</Word>
+
+        <Word>begin</Word>
+        <Word>end</Word>
+        <Word>return</Word>
+    </Keywords>
+
+    <Keywords foreground="DarkViolet">
+        <Word>IF</Word><Word>THEN</Word><Word>ELSE</Word><Word>CASE</Word><Word>IFERR</Word><Word>AND</Word><Word>OR</Word>
+    </Keywords>
+
+    <Keywords foreground="DarkViolet">
+        <Word>FOR</Word><Word>STEP</Word><Word>DOWNTO</Word><Word>WHILE</Word><Word>REPEAT</Word><Word>UNTIL</Word><Word>BREAK</Word><Word>CONTINUE</Word><Word>TO</Word><Word>DO</Word><Word>FROM</Word>
+    </Keywords>
+
+    <Keywords foreground="DarkViolet">
+        <Word>if</Word><Word>then</Word><Word>else</Word><Word>case</Word><Word>iferr</Word><Word>and</Word><Word>or</Word>
+    </Keywords>
+
+    <Keywords foreground="DarkViolet">
+        <Word>for</Word><Word>step</Word><Word>downto</Word><Word>while</Word><Word>repeat</Word><Word>until</Word><Word>break</Word><Word>continue</Word><Word>to</Word><Word>do</Word><Word>from</Word>
+    </Keywords>
+
+        <!-- Variables -->
+    <Keywords foreground="Crimson">
+        <Word>EXPORT</Word>
+    </Keywords>
+
+    <!-- Variables -->
+    <Keywords foreground="blue">
+        <Word>LOCAL</Word>
+        <Word>local</Word>
+    </Keywords>
+
+    <!-- Cadenas -->
+    <Keywords foreground="Teal">
+        <Word>ASC</Word><Word>LOWER</Word><Word>UPPER</Word><Word>CHAR</Word><Word>DIM</Word><Word>STRING</Word><Word>INSTRING</Word><Word>LEFT</Word><Word>RIGHT</Word><Word>MID</Word><Word>ROTATE</Word><Word>STRINGFROMID</Word><Word>REPLACE</Word>
+    </Keywords>
+
+    <!-- Matrices -->
+    <Keywords foreground="Teal">
+        <Word>ADDCOL</Word><Word>ADDROW</Word><Word>DELCOL</Word><Word>DELROW</Word><Word>EDITMAT</Word><Word>REDIM</Word><Word>SCALE</Word><Word>SCALEADD</Word><Word>SUB</Word><Word>SWAPCOL</Word><Word>SWAPROW</Word><Word>EDITLIST</Word><Word>MAKELIST</Word><Word>SORT</Word><Word>REVERSE</Word><Word>CONCAT</Word><Word>POS</Word><Word>SIZE</Word><Word>ΔLIST</Word><Word>ΣLIST</Word><Word>πLIST</Word><Word>TRN</Word><Word>DET</Word><Word>RREF</Word><Word>MAKEMAT</Word><Word>IDENMAT</Word><Word>ROWNORM</Word><Word>COLNORM</Word><Word>RANK</Word><Word>TRACE</Word><Word>EIGENVAL</Word><Word>EIGENVV</Word><Word>jordan</Word><Word>diag</Word><Word>cholesky</Word><Word>hessenberg</Word><Word>ismith</Word><Word>LQ</Word><Word>LSQ</Word><Word>LU</Word><Word>QR</Word><Word>SCHUR</Word><Word>SVD</Word><Word>SVL</Word><Word>CROSS</Word><Word>dot</Word><Word>l2norm</Word><Word>maxnorm</Word><Word>TRN</Word><Word>a2q</Word><Word>abcuv</Word><Word>basis</Word><Word>betad</Word><Word>betad_cdf</Word><Word>betad_icdf</Word><Word>canonical_form</Word><Word>cat</Word><Word>cauchy</Word><Word>cauchy_cdf</Word><Word>cauchy_icdf</Word><Word>cfactor</Word><Word>charpoly</Word><Word>charpoly</Word><Word>chrem</Word><Word>col</Word><Word>colDim</Word><Word>comDenom</Word><Word>companion</Word><Word>compare</Word><Word>complexroot</Word><Word>contains</Word><Word>CopyVar</Word><Word>correlation</Word><Word>count</Word><Word>covariance</Word><Word>covariance_correlation</Word><Word>cpartfrac</Word><Word>crationalroot</Word><Word>cumSum</Word><Word>DATEADD</Word><Word>DAYOFWEEK</Word><Word>DELTADAYS</Word><Word>delcols</Word><Word>delrows</Word><Word>deltalist</Word><Word>Dirac</Word><Word>egcd</Word><Word>eigenvals</Word><Word>eigenvects</Word><Word>eval</Word><Word>evalc</Word><Word>evalf</Word><Word>even</Word><Word>exact</Word><Word>exp</Word><Word>exponential</Word><Word>exponential_cdf</Word><Word>exponential_icdf</Word><Word>exponential_regression</Word><Word>EXPR</Word><Word>ezgcd</Word><Word>f2nd</Word><Word>factorial</Word><Word>fMax</Word><Word>fMin</Word><Word>format</Word><Word>fracmod</Word><Word>froot</Word><Word>fsolve</Word><Word>function_diff</Word><Word>gammad</Word><Word>gammad_cdf</Word><Word>gammad_icdf</Word><Word>gauss</Word><Word>GF</Word><Word>gramschmidt</Word><Word>hadamard</Word><Word>halftan_hyp2exp</Word><Word>hamdist</Word><Word>has</Word><Word>head</Word><Word>Heaviside</Word><Word>horner</Word><Word>hyp2exp</Word><Word>iabcuv</Word><Word>iBasis</Word><Word>icontent</Word><Word>id</Word><Word>identity</Word><Word>iegcd</Word><Word>igcd</Word><Word>image</Word><Word>interval2center</Word><Word>inv</Word><Word>iPart</Word><Word>iquorem</Word><Word>jacobi_symbol</Word><Word>ref</Word><Word>ztrans</Word><Word>int</Word>
+    </Keywords>
+    <Keywords foreground="Teal">
+        <Word>laplacian</Word><Word>latex</Word><Word>lcoeff</Word><Word>legendre_symbol</Word><Word>length</Word><Word>lgcd</Word><Word>lin</Word><Word>linear_interpolate</Word><Word>linear_regression</Word><Word>LineHorz</Word><Word>LineTan</Word><Word>LineVert</Word><Word>list2mat</Word><Word>lname</Word><Word>lnexpand</Word><Word>logarithmic_regression</Word><Word>logb</Word><Word>logistic_regression</Word><Word>lu</Word><Word>Lvar</Word><Word>map</Word><Word>mat2list</Word><Word>matpow</Word><Word>matrix</Word><Word>mean</Word><Word>median</Word><Word>member</Word><Word>modgcd</Word><Word>mRow</Word><Word>mult_c_conjugate</Word><Word>mult_conjugate</Word><Word>nDeriv</Word><Word>negbinomial</Word><Word>negbinomial_cdf</Word><Word>negbinomial_icdf</Word><Word>newton</Word><Word>normal</Word><Word>normalize</Word><Word>not</Word><Word>odd</Word><Word>order_size</Word><Word>pa2b2</Word><Word>pade</Word><Word>part</Word><Word>peval</Word><Word>PIECEWISE</Word><Word>plotinequation</Word><Word>polar_point</Word><Word>pole</Word><Word>POLYCOEF</Word><Word>POLYEVAL</Word><Word>Polygon</Word><Word>polygonplot</Word><Word>polygonscatterplot</Word><Word>polynomial_regression</Word><Word>POLYROOT</Word><Word>potential</Word><Word>power_regression</Word><Word>powerpc</Word><Word>prepend</Word><Word>primpart</Word><Word>product</Word><Word>propfrac</Word><Word>ptayl</Word><Word>purge</Word><Word>q2a</Word><Word>quantile</Word><Word>quartile1</Word><Word>quartile3</Word><Word>quartiles</Word><Word>quorem</Word><Word>quote</Word><Word>randbinomial</Word><Word>randexp</Word><Word>randchisquare</Word><Word>randfisher</Word><Word>randgeometric</Word><Word>randperm</Word><Word>randpoisson</Word><Word>randstudent</Word><Word>randvector</Word><Word>ratnormal</Word><Word>rectangular_coordinates</Word><Word>reduced_conic</Word><Word>ref</Word><Word>remove</Word><Word>reorder</Word><Word>residue</Word><Word>resultant</Word><Word>revlist</Word><Word>romberg</Word><Word>row</Word><Word>rowAdd</Word><Word>rowDim</Word><Word>rowSwap</Word><Word>select</Word><Word>rsolve</Word><Word>seq</Word><Word>seqsolve</Word><Word>shift</Word><Word>shift_phase</Word><Word>signature</Word><Word>simult</Word><Word>sincos</Word><Word>spline</Word><Word>sqrfree</Word><Word>sqrt</Word><Word>srand</Word><Word>stddev</Word><Word>stddevp</Word><Word>sto</Word><Word>sturmseq</Word><Word>subMat</Word><Word>suppress</Word><Word>surd</Word><Word>sylvester</Word><Word>table</Word><Word>tail</Word><Word>tan2cossin2</Word><Word>tan2sincos2</Word><Word>transpose</Word><Word>trunc</Word><Word>tsimplify</Word><Word>type</Word><Word>unapply</Word><Word>uniform</Word><Word>uniform_cdf</Word><Word>uniform_icdf</Word><Word>UNION</Word><Word>valuation</Word><Word>variance</Word><Word>vpotential</Word><Word>VERSION</Word><Word>weibull</Word><Word>weibull_cdf</Word><Word>weibull_icdf</Word><Word>zip</Word>
+    </Keywords>
+
+
+    <!-- Dibujo -->
+    <Keywords foreground="Teal">
+        <Word>C→PX</Word><Word>DRAWMENU</Word><Word>FREEZE</Word><Word>PX→C</Word><Word>RGB</Word><Word>ARC_P</Word><Word>ARC</Word><Word>BLIT_P</Word><Word>BLIT</Word><Word>DIMGROB_P</Word><Word>DIMGROB</Word><Word>FILLPOLY_P</Word><Word>FILLPOLY</Word><Word>GETPIX_P</Word><Word>GETPIX</Word><Word>GROBH_P</Word><Word>GROBH</Word><Word>GROBW_P</Word><Word>GROBW</Word><Word>INVERT_P</Word><Word>INVERT</Word><Word>LINE_P</Word><Word>LINE</Word><Word>PIXOFF_P</Word><Word>PIXOFF</Word><Word>PIXON_P</Word><Word>PIXON</Word><Word>RECT_P</Word><Word>RECT</Word><Word>SUBGROB_P</Word><Word>SUBGROB</Word><Word>TEXTOUT_P</Word><Word>TEXTOUT</Word><Word>TRIANGLE_P</Word><Word>TRIANGLE</Word>
+    </Keywords>
+
+    <!-- Entradas -->
+    <Keywords foreground="Teal">
+        <Word>CHOOSE</Word><Word>GETKEY</Word><Word>INPUT</Word><Word>ISKEYDOWN</Word><Word>MOUSE</Word><Word>MSGBOX</Word><Word>PRINT</Word><Word>WAIT</Word>
+    </Keywords>
+
+    <!-- Otros -->
+    <Keywords foreground="Teal">
+        <Word>ABS</Word><Word>%CHANGE</Word><Word>%TOTAL</Word><Word>CAS</Word><Word>EVALLIST</Word><Word>EXECON</Word><Word>→HMS</Word><Word>HMS→</Word><Word>ITERATE</Word><Word>TICKS</Word><Word>TEVAL</Word><Word>TYPE</Word>
+    </Keywords>
+
+    <!-- Digits -->
+    <Rule foreground="black">
+        \b0[xX][0-9a-fA-F]+  # hex number
+    |    \b
+        (    \d+(\.[0-9]+)?   #number with optional floating point
+        |    \.[0-9]+         #or just starting with floating point
+        )
+        ([eE][+-]?[0-9]+)? # optional exponent
+    </Rule>
+
+
+    <Keywords foreground="deeppink">
+        <Word>+</Word>
+        <Word>-</Word>
+        <Word>/</Word>
+        <Word>*</Word>
+        <Word>^</Word>
+        <Word>=</Word>
+        <Word>≠</Word>
+        <Word>:</Word>
+        <Word>&gt;</Word>
+        <Word>&lt;</Word>
+    </Keywords>
+
+</RuleSet>
+</SyntaxDefinition>

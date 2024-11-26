@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:svg1="https://github.com/dotnetprojects/SVGImage"
+                     xmlns:system="clr-namespace:System;assembly=mscorlib" 
+                    xmlns:system1="http://schemas.microsoft.com/winfx/2009/xaml" 
+                    xmlns:system2="clr-namespace:System;assembly=System.Runtime">
+
+    <!--ICONOS PARA VIGAUI PRINCIPAL-->
+    <!--ICONOS PARA OPEN-->
+    <svg1:SvgIcon x:Key="IconoAlinear" Source="/Imagen/Inicio/Alinear_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoFile" Source="/Imagen/Inicio/File_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoSelected" Source="/Imagen/Inicio/Selected_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoBuscar" Source="/Imagen/Inicio/Buscar_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoSaveAs" Source="/Imagen/Inicio/Saveas_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoSave" Source="/Imagen/Inicio/Save_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoFolder" Source="/Imagen/Inicio/Folder_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoReplace" Source="/Imagen/Inicio/Replace_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoPrint" Source="/Imagen/Inicio/Print_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoBorrar" Source="/Imagen/Inicio/Borrar_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoCut" Source="/Imagen/Inicio/Cut_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoCopy" Source="/Imagen/Inicio/Copy_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoPaste" Source="/Imagen/Inicio/Paste_Dark.svg" />
+
+</ResourceDictionary>

@@ -1,0 +1,114 @@
+﻿<ui:FluentWindow x:Class="HP_PRIME_CODE.Controls.CustomMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+
+        mc:Ignorable="d"
+            MinHeight="200" MinWidth ="450" 
+             Height="250" Width ="450" 
+            ResizeMode="NoResize"
+            ExtendsContentIntoTitleBar="True"
+            WindowBackdropType="Mica"
+            WindowCornerPreference="Round"
+            WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <SolidColorBrush x:Key="BorderNegro" Color="{ui:ThemeResource TextFillColorPrimary}" />
+            <SolidColorBrush x:Key="BorderBlanco" Color="{DynamicResource HexCustomDefault}" />
+
+            <SolidColorBrush x:Key="ColorHexCustomLine" Color="{DynamicResource HexCustomLine}" />
+            <SolidColorBrush x:Key="ColorControlButone" Color="{DynamicResource HexCustomControlButon}" />
+
+
+            <!-- TODO PARA VIGA PANEL PRINCIPAL Para MessageBox -->
+            <SolidColorBrush x:Key="ColorMessageBoxBot" Color="{DynamicResource HexCustomMessageBoxBot}" />
+
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{DynamicResource ColorMessageBoxTop}" SnapsToDevicePixels="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+
+
+        <!--Form Title-->
+        <ui:TitleBar x:Name="MessageTitle" Grid.Row="0" Title="Hola" FontFamily="Segoe UI Semibold" FontSize="16" ShowMinimize="False" ShowMaximize="False"/>
+
+
+        <Grid  Grid.Row="1" Margin="30 15 15 15">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60" Name="ColumnaIcono"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Image Grid.Column="0" Margin="0 0 10 0" x:Name="MessageImage" Source="/Imagen/MessageBox/info.png"  Width="48" Height="48"/>
+
+
+            <TextBlock Grid.Column="1" x:Name="CustomMessageContenido"  
+                        Text="Contenido" 
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Center" 
+                        TextWrapping="Wrap" 
+                        TextAlignment="Justify" 
+                        RenderOptions.ClearTypeHint="Enabled"
+                        FontSize="14"/>
+
+        </Grid>
+
+
+        <!--Form Bottom Background-->
+        <Border Grid.Row="2"   Background="{StaticResource ColorMessageBoxBot}" >
+            <Grid Margin="20 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+
+
+
+                <!-- Si -->
+                <Button x:Name="OkButton" Grid.Column="1"  Width="100"  VerticalAlignment="Center" HorizontalAlignment="Center"  Style="{StaticResource mainButton}"  Click="OkButton_Click">
+                    <Button.Effect>
+                        <DropShadowEffect Direction="270" BlurRadius="5" Opacity="0.1" ShadowDepth="2" Color="Black"/>
+                    </Button.Effect>
+
+                    <TextBlock Text="Si"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                </Button>
+                
+                 <!-- No -->
+                <Button Grid.Column="2" x:Name="NoButton"  VerticalAlignment="Center" HorizontalAlignment="Center"    Style="{StaticResource secondaryButton}" Width="100" Click="NoButton_Click">
+                    <Button.Effect>
+                        <DropShadowEffect Direction="270" BlurRadius="5" Opacity="0.1" ShadowDepth="2" Color="Black"/>
+                    </Button.Effect>
+
+                    <TextBlock  Text="No"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                </Button>
+
+                <!-- Cancelar -->
+                <Button Grid.Column="3"   VerticalAlignment="Center" HorizontalAlignment="Center"    Style="{StaticResource secondaryButton}" Width="100" Click="CancelButton_Click">
+                    <Button.Effect>
+                        <DropShadowEffect Direction="270" BlurRadius="5" Opacity="0.1" ShadowDepth="2" Color="Black"/>
+                    </Button.Effect>
+
+                    <TextBlock x:Name="NameCancel" Text="Cerrar"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                </Button>
+
+
+            </Grid>
+        </Border>
+    </Grid>
+
+</ui:FluentWindow>

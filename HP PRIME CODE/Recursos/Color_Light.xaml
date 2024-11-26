@@ -4,13 +4,16 @@
 
     <Color x:Key="HexCustomColorBlanco">#FFFFFF</Color>
     <Color x:Key="HexCustomColorNegro">#000000</Color>
+    <Color x:Key="HexCustomColorSemiNegro">#6A6A6A</Color>
 
     <SolidColorBrush x:Key="ColorCustomBlancoG" Color="{DynamicResource  HexCustomColorBlanco}" />
     <SolidColorBrush x:Key="ColorCustomNegroG" Color="{DynamicResource  HexCustomColorNegro}" />
-
+    <!-- TODO PARA OPEN -->
+    <SolidColorBrush x:Key="ColorCustomSemiNegroG" Color="{DynamicResource  HexCustomColorSemiNegro}" /> 
+    <!-- ===========-->
     <Color x:Key="HexCustomFondoResult">#FFFFFF</Color>
     <Color x:Key="HexCustomDefault">#FFFFFF</Color>
-    <Color x:Key="HexCustomTheme">#F0F0F0</Color>
+    <Color x:Key="HexCustomTheme">#F3F3F3</Color>
 
     <Color x:Key="HexCustomSelectMenu">#50D2D2D2</Color>
     <Color x:Key="HexCustomMouseOver">#EBEBEB</Color>
@@ -76,7 +79,7 @@
     <!-- TODO PARA ICONO -->
     <system:String x:Key="HexColorViga">#4C4C4C</system:String>
     <Color x:Key="HexCustomColorIcon">#4C4C4C</Color>
-    <Color x:Key="HexCustomColorIconBlue">#0F7FD4</Color>
+    <Color x:Key="HexCustomColorIconBlue">#0071C7</Color>
 
     <SolidColorBrush x:Key="ColorIconNormal" Color="{DynamicResource  HexCustomColorIcon}" />
     <SolidColorBrush x:Key="ColorIconBlue" Color="{DynamicResource  HexCustomColorIconBlue}" />
@@ -128,10 +131,11 @@
 
     <!-- PARA PANEL BUSCAR -->
     <Color x:Key="HexCustomSearchFondo">#F3F3F3</Color>
+    <Color x:Key="HexCustomSearchContent">#FFFFFF</Color>
 
     <SolidColorBrush x:Key="ColorSearchFondo" Color="{DynamicResource  HexCustomSearchFondo}" />
+    <SolidColorBrush x:Key="ColorSearchContent" Color="{DynamicResource  HexCustomSearchContent}" />
 
-    
 
     <!--  DynamicScrollBar  -->
     <Color x:Key="AcrylicBackgroundFillColorDefault">#F5F5F5</Color>
@@ -142,5 +146,21 @@
     <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="{StaticResource SubtleFillColorTransparent}" />
     <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{StaticResource ControlStrongFillColorDefault}" />
     <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{StaticResource ControlStrongFillColorDefault}" />
+
+    <!--  Dynamic Editor  -->
+    <Color x:Key="EditorFillColorDefault">#FFFFFF</Color>
+     <Color x:Key="EditorTextColorDefault">#000000</Color>
+    <Color x:Key="EditorLineNumberColorDefault">Teal</Color>
+
+    <SolidColorBrush x:Key="EditorFillColor" Color="{StaticResource EditorFillColorDefault}" />
+    <SolidColorBrush x:Key="EditorTextColor" Color="{StaticResource EditorTextColorDefault}" />
+    <SolidColorBrush x:Key="EditorLineNumberColor" Color="{StaticResource EditorLineNumberColorDefault}" />
+
+    <!-- TabControl Dynamic Editor  -->
+    <Color x:Key="TabControlDesactivate">#ECECEC</Color>
+    <SolidColorBrush x:Key="TabControlDesactivateColor" Color="{StaticResource TabControlDesactivate}" />
+
+    <Color x:Key="TabControlActivate">#FFFFFF</Color>
+    <SolidColorBrush x:Key="TabControlActivateColor" Color="{StaticResource TabControlActivate}" />
 
 </ResourceDictionary>

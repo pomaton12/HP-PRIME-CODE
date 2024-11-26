@@ -4,8 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.TextFormatting;
 using System.Windows.Shapes;
-
+using Newtonsoft.Json;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System.Xml;
@@ -29,6 +30,23 @@ using SharpVectors.Converters;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Wpf.Ui.Input;
+using System.Xml.Linq;
+using Wpf.Ui.Appearance;
+
+using HP_PRIME_CODE.Utility;
+using System;
+using Wpf.Ui.Controls;
+using Button = System.Windows.Controls.Button;
+using MenuItem = System.Windows.Controls.MenuItem;
+using ICSharpCode.AvalonEdit.Utils;
+
+
+
+
+
+
+
+
 
 
 // ...
@@ -83,6 +101,7 @@ namespace HP_PRIME_CODE
         {
             _textEditor = textEditor;
         }
+
         public void UpdateFoldings(FoldingManager manager, TextDocument document)
         {
             // Guarda la posición del cursor
@@ -91,20 +110,26 @@ namespace HP_PRIME_CODE
             var startOffsets = new Stack<int>();
             var newFoldings = new List<NewFolding>();
 
+            // Expresiones regulares para palabras clave de PPL
+            var openingRegex = new Regex(@"^\s*(BEGIN|IFERR|IF|FOR|WHILE|REPEAT|CASE)\b", RegexOptions.IgnoreCase);
+            var closingRegex = new Regex(@"^\s*(END|UNTIL)\b", RegexOptions.IgnoreCase);
+            var singleLineCaseRegex = new Regex(@"^\s*CASE\b.*END;", RegexOptions.IgnoreCase);
+
             for (int i = 0; i < document.LineCount; i++)
             {
                 var line = document.GetLineByNumber(i + 1);
-                var text = document.GetText(line).Trim().ToUpper(); // Convertir el texto a mayúsculas
+                var text = document.GetText(line).Trim();
 
-                bool lineHasOpeningKeyword = text.StartsWith("BEGIN") || text.StartsWith("FOR") || text.StartsWith("WHILE") || text.StartsWith("CASE") || text.StartsWith("IFERR") || text.StartsWith("REPEAT") || (text.StartsWith("IF") && !text.EndsWith("END;"));
-                bool lineHasClosingKeyword = text.StartsWith("END") || text.StartsWith("UNTIL");
-                bool lineIsSingleIfEnd = text.StartsWith("IF") && text.EndsWith("END;");
+                // Detectar palabras clave de apertura y cierre
+                bool lineHasOpeningKeyword = openingRegex.IsMatch(text);
+                bool lineHasClosingKeyword = closingRegex.IsMatch(text);
+                bool lineIsSingleLineCase = singleLineCaseRegex.IsMatch(text);
 
                 if (lineHasOpeningKeyword && !lineHasClosingKeyword)
                 {
-                    startOffsets.Push(line.EndOffset); // Empieza el plegado después de la primera línea
+                    startOffsets.Push(line.EndOffset); // Guarda el offset del bloque de inicio
                 }
-                else if (lineHasClosingKeyword && !lineHasOpeningKeyword && !lineIsSingleIfEnd)
+                else if (lineHasClosingKeyword && !lineHasOpeningKeyword && !lineIsSingleLineCase)
                 {
                     if (startOffsets.Count > 0)
                     {
@@ -113,12 +138,21 @@ namespace HP_PRIME_CODE
                     }
                 }
             }
-            // Ordena newFoldings por el offset de inicio
+
+            // Manejo de bloques no cerrados (opcional)
+            while (startOffsets.Count > 0)
+            {
+                int startOffset = startOffsets.Pop();
+                newFoldings.Add(new NewFolding(startOffset, document.TextLength)); // Hasta el final del documento
+            }
+
+            // Ordenar los plegados por posición
             newFoldings.Sort((a, b) => a.StartOffset.CompareTo(b.StartOffset));
 
+            // Actualizar el FoldingManager
             manager.UpdateFoldings(newFoldings, -1);
 
-            // Restaura la posición del cursor
+            // Restaurar la posición del cursor
             _textEditor.CaretOffset = caretOffset;
         }
     }
@@ -142,7 +176,7 @@ namespace HP_PRIME_CODE
         {
             get
             {
-                TextBlock textBlock = new TextBlock();
+                System.Windows.Controls.TextBlock textBlock = new System.Windows.Controls.TextBlock();
                 textBlock.Inlines.Add(new Run(Text));
                 textBlock.Inlines.Add(new Run("  " + CommandType) { Foreground = Brushes.Gray, FontStyle = FontStyles.Italic });
                 return textBlock;
@@ -248,8 +282,8 @@ namespace HP_PRIME_CODE
     // Pintar linea al escribir
     public class HighlightCurrentLineBackgroundRenderer : IBackgroundRenderer
     {
-        private TextEditor _editor;
-        private Canvas _minimap;
+        private readonly TextEditor _editor;
+        private readonly Canvas _minimap;
 
         public HighlightCurrentLineBackgroundRenderer(TextEditor editor, Canvas minimap)
         {
@@ -257,10 +291,7 @@ namespace HP_PRIME_CODE
             _minimap = minimap;
         }
 
-        public KnownLayer Layer
-        {
-            get { return KnownLayer.Selection; }
-        }
+        public KnownLayer Layer => KnownLayer.Selection;
 
         public void Draw(TextView textView, DrawingContext drawingContext)
         {
@@ -269,13 +300,20 @@ namespace HP_PRIME_CODE
 
             textView.EnsureVisualLines();
             var currentLine = _editor.Document.GetLineByOffset(_editor.CaretOffset);
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+            // Determina el color del borde según el tema
+            Pen borderPen = ThemeSelected == 0
+                ? new Pen(new SolidColorBrush(Color.FromRgb(230, 230, 242)), 1) // Tema claro
+                : new Pen(new SolidColorBrush(Color.FromRgb(50, 50, 50)), 1); // Tema oscuro
+
+            borderPen.Freeze(); // Mejora el rendimiento
+
             foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, currentLine))
             {
-                var pen = new Pen(new SolidColorBrush(Color.FromArgb(255, 230, 230, 242)), 1);
-                drawingContext.DrawRectangle(null, pen, new Rect(new Point(rect.Location.X + textView.ScrollOffset.X, rect.Location.Y), new Size(textView.ActualWidth, rect.Height)));
+                drawingContext.DrawRectangle(null, borderPen, new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height)));
             }
 
-            // Dibujar la posición de la línea en el minimapa
+            // Dibuja la posición de la línea en el minimapa
             HighlightCurrentLineInMinimap(currentLine.LineNumber - 1);
         }
 
@@ -289,12 +327,17 @@ namespace HP_PRIME_CODE
 
             // Calcula la posición de la línea actual en el minimapa
             string[] lines = _editor.Text.Split('\n');
-            double top = (double)currentLineIndex / lines.Length *( _minimap.Height - 46);
+            double top = (double)currentLineIndex / lines.Length * (_minimap.Height - 46);
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+            // Define el color del rectángulo en el minimapa según el tema
+            SolidColorBrush minimapBrush = ThemeSelected == 0
+                ? new SolidColorBrush(Color.FromRgb(255, 0, 0)) // Rojo claro para tema claro
+                : new SolidColorBrush(Color.FromRgb(255, 50, 50)); // Rojo oscuro para tema oscuro
 
-            // Crea un rectángulo rojo y lo posiciona en la línea actual
+            // Crea un rectángulo y lo posiciona en la línea actual
             var rect = new Rectangle
             {
-                Fill = Brushes.Red,
+                Fill = minimapBrush,
                 Width = 20,
                 Height = 2,
             };
@@ -308,18 +351,22 @@ namespace HP_PRIME_CODE
     public class IndentationGuidesRenderer : IBackgroundRenderer
     {
         private readonly TextView _textView;
+        private Brush _guideBrush;
 
         public IndentationGuidesRenderer(TextView textView)
         {
             _textView = textView;
             _textView.ScrollOffsetChanged += (sender, e) => _textView.InvalidateLayer(Layer);
+
+            // Inicializar con el color según el tema actual
+            UpdateTheme();
         }
 
         public KnownLayer Layer => KnownLayer.Background;
 
         public void Draw(TextView textView, DrawingContext drawingContext)
         {
-            var pen = new Pen(Brushes.LightGray, 1)
+            var pen = new Pen(_guideBrush, 1)
             {
                 DashStyle = DashStyles.Solid
             };
@@ -339,12 +386,36 @@ namespace HP_PRIME_CODE
                     for (var i = 0; i < indentations; i++)
                     {
                         var guideX = Math.Round(textView.WideSpaceWidth * i * indentation.Length) - textView.ScrollOffset.X + 0.5;
-                        drawingContext.DrawLine(pen, new Point(guideX, visualLine.VisualTop - textView.ScrollOffset.Y), new Point(guideX, visualLine.VisualTop + visualLine.Height - textView.ScrollOffset.Y));
+                        drawingContext.DrawLine(pen,
+                            new Point(guideX, visualLine.VisualTop - textView.ScrollOffset.Y),
+                            new Point(guideX, visualLine.VisualTop + visualLine.Height - textView.ScrollOffset.Y));
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Actualiza los colores de las guías según el tema seleccionado.
+        /// </summary>
+        public void UpdateTheme()
+        {
+            double themeSelected = Properties.Settings.Default.TemaSettings;
+
+            if (themeSelected == 0) // Tema claro
+            {
+                Brush myBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3"));
+                _guideBrush = myBrush; // Color para tema claro
+            }
+            else if (themeSelected == 1) // Tema oscuro
+            {
+                Brush myBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#404040"));
+                _guideBrush = myBrush; // Color para tema oscuro
+            }
+            else
+            {
+                _guideBrush = Brushes.Gray; // Default
+            }
+        }
     }
 
     // Seleccionar un Texto y sus copias
@@ -396,11 +467,277 @@ namespace HP_PRIME_CODE
                 }
             }
         }
-        
+
     }
 
     // ==== nuevo 2024 II 
-    // para boton cerrar de pestañas
+    // para manejo de llaves cieeres y aperturas
+
+    public class BracketHighlighter : IBackgroundRenderer
+    {
+        private TextEditor _editor;
+        private int _openBracketOffset = -1;
+        private int _closeBracketOffset = -1;
+
+        public Brush HighlightBrushLight { get; set; } = Brushes.LightBlue; // Color para tema claro
+        public Brush HighlightBrushDark { get; set; } = Brushes.DarkBlue;  // Color para tema oscuro
+
+        public Typeface HighlightTypeface { get; set; } = new Typeface(
+            new FontFamily("Consolas"),
+            FontStyles.Normal,
+            FontWeights.Bold,
+            FontStretches.Normal
+        );
+
+        public BracketHighlighter(TextEditor editor)
+        {
+            _editor = editor;
+            _editor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
+
+            // Agrega el manejador de eventos para TextEntering
+            _editor.TextArea.TextEntering += TextArea_TextEntering;
+        }
+
+        public KnownLayer Layer => KnownLayer.Selection; // Usa KnownLayer.Selection para que se muestre sobre el texto
+
+        public void Draw(TextView textView, DrawingContext drawingContext)
+        {
+            if (_openBracketOffset < 0 || _closeBracketOffset < 0 || _editor.Document == null)
+                return;
+
+            Brush backgroundBrush = Properties.Settings.Default.TemaSettings == 0
+                ? new SolidColorBrush(Color.FromArgb(50, 185, 185, 185)) // Fondo azul claro semitransparente para tema claro
+                : new SolidColorBrush(Color.FromArgb(0, 255, 69, 0));   // Fondo naranja semitransparente para tema oscuro
+            backgroundBrush.Freeze();
+
+            Pen borderPen = Properties.Settings.Default.TemaSettings == 0
+                ? new Pen(new SolidColorBrush(Color.FromRgb(185, 185, 185)), 1) // Azul oscuro para el borde en tema claro
+                : new Pen(new SolidColorBrush(Color.FromRgb(136, 136, 136)), 1); // Naranja oscuro para el borde en tema oscuro
+            borderPen.Freeze();
+
+            // Dibujar apertura de llave
+            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(
+                            textView,
+                            new TextSegment { StartOffset = _openBracketOffset, EndOffset = _openBracketOffset + 1 }))
+            {
+                drawingContext.DrawRectangle(backgroundBrush, borderPen, rect);
+            }
+
+            // Dibujar cierre de llave
+            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(
+                            textView,
+                            new TextSegment { StartOffset = _closeBracketOffset, EndOffset = _closeBracketOffset + 1 }))
+            {
+                drawingContext.DrawRectangle(backgroundBrush, borderPen, rect);
+            }
+        }
+
+
+        private void Caret_PositionChanged(object sender, EventArgs e)
+        {
+            // Reinicia los offsets
+            _openBracketOffset = -1;
+            _closeBracketOffset = -1;
+
+            int offset = _editor.CaretOffset;
+            string text = _editor.Text;
+
+            if (offset < 1 || offset > text.Length)
+                return;
+
+            char currentChar = text[offset - 1];
+            if ("{}[]()".Contains(currentChar))
+            {
+                // Encuentra el par correspondiente
+                _openBracketOffset = offset - 1;
+                _closeBracketOffset = FindMatchingBracket(offset - 1, text);
+            }
+
+            _editor.TextArea.TextView.Redraw(); // Redibuja el editor para actualizar el resaltado
+        }
+
+        private int FindMatchingBracket(int offset, string text)
+        {
+            Stack<char> stack = new Stack<char>();
+            char open = text[offset];
+            char close;
+
+            switch (open)
+            {
+                case '{': close = '}'; break;
+                case '[': close = ']'; break;
+                case '(': close = ')'; break;
+                case '}': close = '{'; break;
+                case ']': close = '['; break;
+                case ')': close = '('; break;
+                default: return -1;
+            }
+
+            int direction = "{[(".Contains(open) ? 1 : -1; // Dirección de búsqueda
+            for (int i = offset + direction; i >= 0 && i < text.Length; i += direction)
+            {
+                // Verifica si hay un carácter de escape 
+                if (text[i] == '\\' && i + 1 < text.Length)
+                {
+                    i++; // Salta el carácter de escape
+                    continue;
+                }
+
+                if (text[i] == open)
+                {
+                    stack.Push(open);
+                }
+                else if (text[i] == close)
+                {
+                    if (stack.Count == 0)
+                    {
+                        return i; // Par encontrado
+                    }
+                    else
+                    {
+                        stack.Pop(); // Elimina la llave de apertura coincidente
+                    }
+                }
+            }
+
+            return -1; // No encontrado
+        }
+
+        private void TextArea_TextEntering(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text == "{")
+            {
+                e.Handled = true;
+                _editor.Document.Insert(_editor.TextArea.Caret.Offset, e.Text + "}"); // Inserta la llave de cierre
+                _editor.TextArea.Caret.Offset--; // Mueve el cursor hacia atrás
+            }
+            else if (e.Text == "[")
+            {
+                e.Handled = true;
+                _editor.Document.Insert(_editor.TextArea.Caret.Offset, e.Text + "]"); // Inserta la llave de cierre
+                _editor.TextArea.Caret.Offset--; // Mueve el cursor hacia atrás
+            }
+            else if (e.Text == "(")
+            {
+                e.Handled = true;
+                _editor.Document.Insert(_editor.TextArea.Caret.Offset, e.Text + ")"); // Inserta el paréntesis de cierre
+                _editor.TextArea.Caret.Offset--; // Mueve el cursor hacia atrás
+            }
+        }
+    }
+
+
+    // Para poner colores a llaves
+    public class BracketColorizer : DocumentColorizingTransformer
+    {
+        private List<Color> BracketColors { get; set; }
+
+        public BracketColorizer(double themeSelec)
+        {
+            BracketColors = GetBracketColorsByTheme(themeSelec);
+        }
+
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            string text = CurrentContext.Document.GetText(line.Offset, line.Length);
+            Stack<int> bracketStack = new Stack<int>();
+            bool isInsideComment = false;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char currentChar = text[i];
+                int offset = line.Offset + i;
+
+                // Detectar comentarios "//" y omitir el resto de la línea
+                if (currentChar == '/' && i + 1 < text.Length && text[i + 1] == '/')
+                {
+                    isInsideComment = true;
+                    break; // Detenemos el análisis en el caso de "//"
+                }
+
+                // Detectar inicio de comentario multilinea "/*"
+                if (currentChar == '/' && i + 1 < text.Length && text[i + 1] == '*')
+                {
+                    isInsideComment = true;
+                }
+
+                // Detectar fin de comentario multilinea "*/"
+                if (currentChar == '*' && i + 1 < text.Length && text[i + 1] == '/')
+                {
+                    isInsideComment = false;
+                    i++; // Saltamos el '/' de cierre
+                    continue;
+                }
+
+                // Si estamos dentro de un comentario, no procesamos las llaves
+                if (isInsideComment)
+                    continue;
+
+                // Procesar llaves de apertura
+                if ("{[(".Contains(currentChar))
+                {
+                    bracketStack.Push(offset); // Agregar el offset al stack
+                    int level = bracketStack.Count - 1; // Determinar nivel de anidación
+                    ApplyColor(offset, level);
+                }
+                // Procesar llaves de cierre
+                else if ("}])".Contains(currentChar))
+                {
+                    if (bracketStack.Count > 0)
+                    {
+                        int openOffset = bracketStack.Pop(); // Quitar el offset del stack
+                        int level = bracketStack.Count; // Determinar nivel de anidación
+                        ApplyColor(offset, level);
+                    }
+                }
+            }
+        }
+
+        private void ApplyColor(int offset, int level)
+        {
+            // Determina el color basado en el nivel, con un ciclo para niveles mayores que el número de colores definidos
+            Color color = BracketColors[level % BracketColors.Count];
+
+            ChangeLinePart(
+                offset, offset + 1, // Rango de caracteres (la llave)
+                element => element.TextRunProperties.SetForegroundBrush(new SolidColorBrush(color))
+            );
+        }
+
+        private List<Color> GetBracketColorsByTheme(double themeSelec)
+        {
+            // Define los colores para el tema claro
+            if (themeSelec == 0) // Tema Claro
+            {
+                return new List<Color>
+            {
+                Colors.DarkBlue,  // Nivel 0
+                Colors.DarkGreen, // Nivel 1
+                Colors.DarkRed,   // Nivel 2
+            };
+            }
+            // Define los colores para el tema oscuro
+            else if (themeSelec == 1) // Tema Oscuro
+            {
+                return new List<Color>
+            {
+                Colors.Gold,  // Nivel 0
+                Colors.Violet, // Nivel 1
+                Colors.DodgerBlue,       // Nivel 2
+            };
+            }
+            else
+            {
+                // Si no hay un tema definido, usar una lista predeterminada
+                return new List<Color>
+            {
+                Colors.Gray
+            };
+            }
+        }
+    }
+
+
 
     public partial class MainWindow 
     {
@@ -420,32 +757,25 @@ namespace HP_PRIME_CODE
         private int _previousSelectionLength;
 
         //para agregar pestañas
-        private ActionTabViewModal vmd;
+        // Declara una ObservableCollection para almacenar las pestañas
+        public ObservableCollection<TabItem> Tabs { get; set; } = new ObservableCollection<TabItem>();
+
+        // Para boton menu cambiar stylo segun boton
+        public Button botonSeleccionado = null; // Para Menu botones seleccioandos o no
+
+        // Para cambio de thema y Idioma
+        //private double ThemeSelected = Properties.Settings.Default.TemaSettings; // 0 = ligth   1 = Dark   // O defaulti install
+        private double IdiomaSelected = Properties.Settings.Default.IdiomaSettings; // 0 = esp   1 = ingles  // O defaulti install
 
         public MainWindow()
         {
             InitializeComponent();
 
-            StateChanged += MainWindow_StateChanged;// para tooltop de maximizar
-
-
             // Cargar Colores y Estylo ============
+            
 
-            // Registrar la definición de resaltado de sintaxis
-            string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string xshdFilePath = System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL.xshd");
 
-            using (Stream s = File.OpenRead(xshdFilePath))
-            {
-                using (XmlTextReader reader = new XmlTextReader(s))
-                {
-                    // Carga la definición XSHD
-                    IHighlightingDefinition definition = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-
-                    // Registra la definición en el HighlightingManager
-                    HighlightingManager.Instance.RegisterHighlighting("HPPPL", new string[] { ".hppl" }, definition); // Agrega la extensión
-                }
-            }
+ 
 
 
             // =========== AGregados 2024 ===============
@@ -456,47 +786,206 @@ namespace HP_PRIME_CODE
             tabControl.SelectionChanged += tabControl_SelectionChanged;
 
             //[3] Cerrar pestañas
+            tabControl.ItemsSource = Tabs;
+            CloseTabCommand = new RelayCommand(CloseTab);
+            DataContext = this;
+
+            //[4] Boton Menu por defecto
+            // Inicializa el temporizador de resaltado
+            _highlightingTimer = new DispatcherTimer();
+            _highlightingTimer.Interval = TimeSpan.FromMilliseconds(100); // Comprueba cada 100 milisegundos
+            _highlightingTimer.Tick += HighlightingTimer_Tick;
+            _highlightingTimer.Start();
 
         }
 
-
-        private void Button_Exit(object sender, RoutedEventArgs e)
-            {
-
-                this.Close();
-            }
-
-        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (this.WindowState == WindowState.Maximized)
+
+            //[0] convierte theme1 a un índice entero y selecciona el ítem correspondiente en el ComboBox
+            ComboBoxIdioma.SelectedIndex = (int)IdiomaSelected;
+            //ComboBox1.SelectedIndex = (int)ThemeSelected;
+
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+
+            if (ThemeSelected == 0)
             {
-                this.WindowState = WindowState.Normal;
+                ThemeVigaUIpanel.Text = "\uE706";
             }
-            else
+            else if (ThemeSelected == 1)
             {
-                this.WindowState = WindowState.Maximized;
+                ThemeVigaUIpanel.Text = "\uE708";
             }
+
+
+            WindowBackdropType backgroundSelect = new WindowBackdropType();
+            ApplicationTheme themeSelect = new ApplicationTheme();
+
+            // cambia el tema basándote en el valor almacenado
+            if (ThemeSelected == 0)
+            {
+                // código para aplicar el tema Light
+
+                themeSelect = ApplicationTheme.Light;
+                backgroundSelect = WindowBackdropType.Tabbed;
+
+                ((App)Application.Current).ChangeTheme("Light");
+            }
+            else if (ThemeSelected == 1)
+            {
+
+                themeSelect = ApplicationTheme.Dark;
+                backgroundSelect = WindowBackdropType.Tabbed;
+
+
+                // Obtén la referencia al recurso SolidColorBrush
+                ((App)Application.Current).ChangeTheme("Dark");
+            }
+
+            Wpf.Ui.Appearance.SystemThemeWatcher.Watch(
+            this,                                    // Window class
+            backgroundSelect, // Background type
+            true                                     // Whether to change accents automatically
+            );
+
+            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(
+            themeSelect, // Theme type
+            backgroundSelect,  // Background type
+            true);
+
+            //[1]Cargar Pestañas 
+            LoadTabsState();
+
+            //  [2] PARA CARGAR FUENTE
+            // Cargar la fuente predeterminada desde la configuración
+            string fuenteSeleccionada = Properties.Settings.Default.EditorFont;
+
+            // Verifica si la fuente está definida en los recursos de App.xaml
+            if (Application.Current.Resources.Contains(fuenteSeleccionada))
+            {
+                FontFamily fuente = (FontFamily)Application.Current.FindResource(fuenteSeleccionada);
+
+                ApplyFontToAllEditors(fuente);
+
+
+            }
+
+            // Seleccionar la fuente actual en el ComboBox
+            ComboBoxFuente.SelectedItem = ComboBoxFuente.Items
+                .Cast<ComboBoxItem>()
+                .FirstOrDefault(item => item.Content.ToString() == fuenteSeleccionada);
+
+            // [2]   PARA CARGAR TAMAÑO DE TEXTO
+            // Cargar el tamaño de fuente desde la configuración
+            double fontSize = Properties.Settings.Default.EditorFontSize;
+
+            // Aplicar el tamaño de fuente a todos los editores
+            ApplyFontSizeToAllEditors(fontSize);
+
+            // Seleccionar el tamaño de fuente actual en el ComboBox
+            ComboBoxFontSize.SelectedItem = ComboBoxFontSize.Items
+                .Cast<ComboBoxItem>()
+                .FirstOrDefault(item => item.Content.ToString() == fontSize.ToString());
+
+
         }
 
-        private void MainWindow_StateChanged(object sender, EventArgs e)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (WindowState == WindowState.Maximized)
-            {
-                MaximizeToolTip.Content = "Restored";
-            }
-            else
-            {
-                MaximizeToolTip.Content = "Maximized";
-            }
-
-            
+            SaveTabsState(); // Guardar el estado de las pestañas antes de cerrar
         }
 
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+
+        //=========================================================================================
+        //
+        //                                  PARA BARRA DE MENUS
+        //
+        //=========================================================================================
+
+        //<!--Menu Buttons Inicio  -->
+        private void BotonMenu_Archivo(object sender, RoutedEventArgs e)  // BOTON AUTOR
         {
-            this.WindowState = WindowState.Minimized;
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            if (editor.WordWrap)
+            {
+                var uiMessageBox = new Wpf.Ui.Controls.MessageBox
+                {
+                    Title = "Guardar",
+                    Content = "¿Deseas guardar los cambios antes de Cerrar la Pestaña?",
+                    PrimaryButtonText = "Si",
+                    SecondaryButtonText = "No",
+                    CloseButtonText = "Cancelar",
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+
+                uiMessageBox.ShowDialogAsync();
+            }
+            else {
+                var uiMessageBox = new Wpf.Ui.Controls.MessageBox
+                {
+                    Title = "Guardar",
+                    Content = "No desactivado",
+                    CloseButtonText = "ok",
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+
+                uiMessageBox.ShowDialogAsync();
+            }
+
+
         }
 
+
+        //<!--Menu Buttons Inicio  -->
+        private void BotonMenu_Inicio(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        {
+            Button boton = (Button)sender;
+
+            // Restaurar el color del botón previamente seleccionado
+            if (botonSeleccionado != null)
+            {
+                botonSeleccionado.Style = (Style)FindResource("tabButton");
+            }
+
+            // Cambiar el color del botón seleccionado actualmente
+            boton.Style = (Style)FindResource("tabButton1");
+            // Actualizar el botón seleccionado
+            botonSeleccionado = boton;
+
+            BH_Inicio.Visibility = Visibility.Visible;
+            BH_Vista.Visibility = Visibility.Collapsed;
+
+        }
+
+        //<!--Menu Buttons Inicio  -->
+        private void BotonMenu_Vista(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        {
+            Button boton = (Button)sender;
+
+            // Restaurar el color del botón previamente seleccionado
+            if (botonSeleccionado != null)
+            {
+                botonSeleccionado.Style = (Style)FindResource("tabButton");
+            }
+
+            // Cambiar el color del botón seleccionado actualmente
+            boton.Style = (Style)FindResource("tabButton1");
+            // Actualizar el botón seleccionado
+            botonSeleccionado = boton;
+
+            BH_Inicio.Visibility = Visibility.Collapsed;
+            BH_Vista.Visibility = Visibility.Visible;
+        }
+
+
+
+        //=========================================================================================
+        //
+        //                            PARA BARRA DE HERRAMIENTAS INICIO
+        //
+        //=========================================================================================
 
         // BOTONES HERRAMIENTAS ========================================
 
@@ -653,8 +1142,8 @@ namespace HP_PRIME_CODE
 
                 if (openedBlock != null)
                 {
-                    MessageBox.Show("Can't format the code because missing closing statements after:\n" + (openedBlock.Line + 1) + ": '" +
-                        code[openedBlock.Line].Trim().Trim(new[] { '\n', '\r' }) + "'\n\nPlease check your code and retry.", "Format document", MessageBoxButton.OK,
+                    System.Windows.MessageBox.Show("Can't format the code because missing closing statements after:\n" + (openedBlock.Line + 1) + ": '" +
+                        code[openedBlock.Line].Trim().Trim(new[] { '\n', '\r' }) + "'\n\nPlease check your code and retry.", "Format document", System.Windows.MessageBoxButton.OK,
                         MessageBoxImage.Exclamation);
 
                     editor.Select(editor.Document.GetLineByNumber(openedBlock.Line + 1).Offset, editor.Document.GetLineByNumber(openedBlock.Line + 1).Length);
@@ -708,10 +1197,8 @@ namespace HP_PRIME_CODE
                     if (string.IsNullOrWhiteSpace(selectedText))
                     {
                         _wordHighlighter.SetWordToHighlight(null);
-
                         // Borra los resaltados del minimapa
                         minimap.Children.Clear();
-
                         // Borra la última palabra seleccionada
                         _lastSelectedWord = null;
                     }
@@ -727,9 +1214,18 @@ namespace HP_PRIME_CODE
                         UpdateMinimap(selectedText);
                     }
 
-                    // Redibuja la vista de texto para aplicar el resaltado
+                    // Redibuja la vista de texto para aplicar el resaltado solo en la pestaña activa
                     editor.TextArea.TextView.Redraw();
                 }
+            }
+        }
+
+        private void ClearWordHighlighter(TextEditor editor)
+        {
+            if (editor != null && editor.TextArea.TextView.BackgroundRenderers.Contains(_wordHighlighter))
+            {
+                _wordHighlighter.SetWordToHighlight(null); // Limpia la palabra a resaltar
+                editor.TextArea.TextView.Redraw();        // Fuerza el redibujado para borrar los resaltados
             }
         }
 
@@ -749,7 +1245,8 @@ namespace HP_PRIME_CODE
 
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    if (lines[i].Contains(selectedWord))
+                    // Verificar que la línea y la palabra seleccionada no sean nulas o vacías
+                    if (!string.IsNullOrEmpty(lines[i]) && !string.IsNullOrEmpty(selectedWord) && lines[i].Contains(selectedWord))
                     {
                         var rect = new Rectangle
                         {
@@ -765,27 +1262,57 @@ namespace HP_PRIME_CODE
             }
         }
 
-        // redibuja el canvas cada vez que se maximiza o minimiza
-        private async void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = GetActiveTextEditor();
 
+
+        // redibuja el canvas cada vez que se maximiza o minimiza
+        private DispatcherTimer resizeTimer;
+
+        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (resizeTimer == null)
+            {
+                resizeTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(200)
+                };
+                resizeTimer.Tick += (s, args) =>
+                {
+                    resizeTimer.Stop();
+                    RedrawMinimap();
+                };
+            }
+
+            resizeTimer.Stop();
+            resizeTimer.Start();
+        }
+
+        private void RedrawMinimap()
+        {
+            TextEditor editor = GetActiveTextEditor();
             if (editor != null)
             {
-                // Redibuja el minimapa con la última palabra seleccionada
-                if (_lastSelectedWord != null)
-                {
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        minimap.Height = GridGeneralEditor.ActualHeight;
-                        UpdateMinimap(_lastSelectedWord);
 
-                        var renderer = new HighlightCurrentLineBackgroundRenderer(editor, minimap);
-                        editor.TextArea.TextView.BackgroundRenderers.Add(renderer);
-                    }, System.Windows.Threading.DispatcherPriority.Render);
-                }
+
+                minimap.Height = editor.ActualHeight;
+                UpdateMinimap(_lastSelectedWord);
+                AddHighlightRenderer(editor);
             }
+        }
+
+        // Manejo de Resaltado de Línea Actual
+        private void AddHighlightRenderer(TextEditor editor)
+        {
+            var existingRenderer = editor.TextArea.TextView.BackgroundRenderers
+                .OfType<HighlightCurrentLineBackgroundRenderer>()
+                .FirstOrDefault();
+
+            if (existingRenderer != null)
+            {
+                editor.TextArea.TextView.BackgroundRenderers.Remove(existingRenderer);
+            }
+            
+            var renderer = new HighlightCurrentLineBackgroundRenderer(editor, minimap);
+            editor.TextArea.TextView.BackgroundRenderers.Add(renderer);
         }
 
 
@@ -875,6 +1402,8 @@ namespace HP_PRIME_CODE
                         MiTextBoxBuscar.Text = editor.SelectedText;
 
                     }
+
+
 
                     BorderPanelBuscar.Visibility = Visibility.Visible;
 
@@ -1164,14 +1693,17 @@ namespace HP_PRIME_CODE
         bool matchCase = Properties.Settings.Default.CaseSensitiveSearch;
         private void UpdateMatchCaseButtonColor()
         {
-            // Cambiar el color del botón basándote en el valor de matchCase
-            SolidColorBrush ColorBordeToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0090F1"));
-            SolidColorBrush ColorFondoToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#AADAFA"));
+ 
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+
+            // Determina el color del borde según el tema
+            SolidColorBrush ColorFondoToogleSearcha = ThemeSelected == 0
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CDCFE")) // Tema claro
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E9BFA")); // Tema oscuro
 
             // Cambiar el grosor del borde del botón basándote en el valor de matchCase
-            MatchCaseButton.BorderThickness = matchCase ? new Thickness(1) : new Thickness(0);
+            MatchCaseButton.BorderThickness = new Thickness(0);
 
-            MatchCaseButton.BorderBrush = matchCase ? ColorBordeToogleSearcha : Brushes.Transparent;
             MatchCaseButton.Background = matchCase ? ColorFondoToogleSearcha : Brushes.Transparent;
 
         }
@@ -1199,14 +1731,16 @@ namespace HP_PRIME_CODE
 
         private void UpdateWholeWordSearchButtonColor()
         {
-            // Cambiar el color del botón basándote en el valor de wholeWordSearch
-            SolidColorBrush ColorBordeToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0090F1"));
-            SolidColorBrush ColorFondoToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#AADAFA"));
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
-            // Cambiar el grosor del borde del botón basándote en el valor de wholeWordSearch
-            WholeWordSearchButton.BorderThickness = wholeWordSearch ? new Thickness(1) : new Thickness(0);
+            // Determina el color del borde según el tema
+            SolidColorBrush ColorFondoToogleSearcha = ThemeSelected == 0
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CDCFE")) // Tema claro
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E9BFA")); // Tema oscuro
 
-            WholeWordSearchButton.BorderBrush = wholeWordSearch ? ColorBordeToogleSearcha : Brushes.Transparent;
+            // Cambiar el grosor del borde del botón basándote en el valor de matchCase
+            MatchCaseButton.BorderThickness = new Thickness(0);
+
             WholeWordSearchButton.Background = wholeWordSearch ? ColorFondoToogleSearcha : Brushes.Transparent;
         }
 
@@ -1232,14 +1766,16 @@ namespace HP_PRIME_CODE
 
         private void UpdateUseRegexButtonColor()
         {
-            // Cambiar el color del botón basándote en el valor de useRegex
-            SolidColorBrush ColorBordeToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0090F1"));
-            SolidColorBrush ColorFondoToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#AADAFA"));
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
-            // Cambiar el grosor del borde del botón basándote en el valor de useRegex
-            UseRegexButton.BorderThickness = useRegex ? new Thickness(1) : new Thickness(0);
+            // Determina el color del borde según el tema
+            SolidColorBrush ColorFondoToogleSearcha = ThemeSelected == 0
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CDCFE")) // Tema claro
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E9BFA")); // Tema oscuro
 
-            UseRegexButton.BorderBrush = useRegex ? ColorBordeToogleSearcha : Brushes.Transparent;
+            // Cambiar el grosor del borde del botón basándote en el valor de matchCase
+            MatchCaseButton.BorderThickness = new Thickness(0);
+
             UseRegexButton.Background = useRegex ? ColorFondoToogleSearcha : Brushes.Transparent;
         }
 
@@ -1277,13 +1813,57 @@ namespace HP_PRIME_CODE
         // Suscribirse al evento SelectionChanged del TabControl
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
+
+            // Guarda la posición actual del caret en la pestaña activa antes de cambiar de pestaña
+            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TabItem previousTab && previousTab.Tag is TabFileData previousFileData)
+            {
+
+
+
+                // Obtén el TextEditor de la pestaña anterior
+                if (previousTab.Content is TextEditor previousEditor)
+                {
+
+                    // Limpia el resaltado en la pestaña anterior
+                    ClearWordHighlighter(previousEditor);
+
+                    // Actualiza la posición del caret en los datos de la pestaña
+                    previousFileData.CaretLine = previousEditor.TextArea.Caret.Line;
+                    previousFileData.CaretColumn = previousEditor.TextArea.Caret.Column;
+                }
+            }
+
             // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = getActiveTextEditor();
+            TextEditor editor = GetActiveTextEditor();
 
-            // Actualizar la búsqueda al cambiar de pestaña
-            UpdateSearch(editor);
+            if (editor != null && tabControl.SelectedItem is TabItem selectedTab && selectedTab.Tag is TabFileData fileData)
+            {
+                // Actualizar la búsqueda al cambiar de pestaña
+                UpdateSearch(editor);
+
+                
+
+                // Restaurar la posición del caret y el scroll para la pestaña activa
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    // Asegúrate de que los datos corresponden a la pestaña activa
+                    if (tabControl.SelectedItem == selectedTab)
+                    {
+                        editor.TextArea.Caret.Line = fileData.CaretLine;
+                        editor.TextArea.Caret.Column = fileData.CaretColumn;
+
+                        // Desplázate a la posición correcta
+                        editor.ScrollTo(fileData.CaretLine, fileData.CaretColumn);
+
+
+                    }
+                }), System.Windows.Threading.DispatcherPriority.ContextIdle);
+
+                _wordHighlighter = new WordHighlighter(editor);
+                editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
+            }
         }
-
 
 
         // para panel reemplazar
@@ -1310,14 +1890,16 @@ namespace HP_PRIME_CODE
 
         private void UpdatePreserveCaseButtonColor()
         {
-            // Cambiar el color del botón basándote en el valor de preserveCase
-            SolidColorBrush ColorBordeToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0090F1"));
-            SolidColorBrush ColorFondoToogleSearcha = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#AADAFA"));
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
-            // Cambiar el grosor del borde del botón basándote en el valor de preserveCase
-            PreserveCaseButton.BorderThickness = preserveCase ? new Thickness(1) : new Thickness(0);
+            // Determina el color del borde según el tema
+            SolidColorBrush ColorFondoToogleSearcha = ThemeSelected == 0
+                ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CDCFE")) // Tema claro
+                : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E9BFA")); // Tema oscuro
 
-            PreserveCaseButton.BorderBrush = preserveCase ? ColorBordeToogleSearcha : Brushes.Transparent;
+            // Cambiar el grosor del borde del botón basándote en el valor de matchCase
+            MatchCaseButton.BorderThickness = new Thickness(0);
+
             PreserveCaseButton.Background = preserveCase ? ColorFondoToogleSearcha : Brushes.Transparent;
         }
 
@@ -1780,22 +2362,13 @@ namespace HP_PRIME_CODE
                         VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, // Establece la visibilidad de la barra de desplazamiento vertical
                         Margin = new Thickness(10, 0, 10, 0), // Establece un relleno alrededor del TextEditor
                         Text = info,
-                        FontFamily = (FontFamily)Application.Current.Resources["ConsolasC"],
+                        FontFamily = (FontFamily)Application.Current.Resources["Consolas"],
 
 
                     };
 
                     // Cargar el archivo XSHD personalizado
-                    string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    string xshdFilePath = System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL.xshd");
-
-                    using (var stream = File.OpenRead(xshdFilePath))
-                    {
-                        using (var reader = new XmlTextReader(stream))
-                        {
-                            textEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-                        }
-                    }
+                    LoadSyntaxHighlighting(editor); // aplica Syntasix color
 
                     TextOptions.SetTextRenderingMode(textEditor, TextRenderingMode.ClearType);
                     RenderOptions.SetClearTypeHint(textEditor, ClearTypeHint.Enabled);
@@ -1853,23 +2426,43 @@ namespace HP_PRIME_CODE
         private void ConfigureEditor(TextEditor editor)
         {
 
+            // Configurar opciones de renderizado de texto para mejor claridad y nitidez
+            TextOptions.SetTextFormattingMode(editor, TextFormattingMode.Ideal);
+            TextOptions.SetTextRenderingMode(editor, TextRenderingMode.ClearType);
+            TextOptions.SetTextHintingMode(editor, TextHintingMode.Fixed);
+
             // [1] Configura el editor con las propiedades Esteticas
             editor.Margin = new Thickness(0);
-            editor.Foreground = new SolidColorBrush(Color.FromArgb(255, 11, 11, 59)); // Foreground
-            editor.FontSize = 13;
-            editor.FontFamily = new FontFamily("PrimeSansMono"); // FontFamily
-            editor.ShowLineNumbers = true;
-            // Obtener el ScrollViewer desde el TextView
-            ScrollViewer scrollViewer = FindScrollViewer(editor.TextArea.TextView);
 
-            // Configurar el ScrollViewer
-            if (scrollViewer != null)
+            editor.Background = (Brush)Application.Current.Resources["EditorFillColor"];
+            editor.Foreground = (Brush)Application.Current.Resources["EditorTextColor"];
+            editor.LineNumbersForeground = (Brush)Application.Current.Resources["EditorLineNumberColor"];
+
+            // Cargar el tamaño de fuente desde la configuración
+            double fontSize = Properties.Settings.Default.EditorFontSize;
+            editor.FontSize = fontSize;
+
+            // Cargar el tipo de fuente desde la configuración
+            string fuenteSeleccionada = Properties.Settings.Default.EditorFont;
+            if (Application.Current.Resources.Contains(fuenteSeleccionada))
             {
-                scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-                scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+                FontFamily fuente = (FontFamily)Application.Current.FindResource(fuenteSeleccionada);
+                editor.FontFamily = fuente;
             }
 
+            editor.ShowLineNumbers = true;
+
+            //==============================================================
+            // Obtener el ScrollViewer desde el TextView
+            // Desabilitamos Scroll
             editor.WordWrap = false;
+            editor.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible; // Asegura que el scroll horizontal sea visible
+            editor.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;     // Ajusta el scroll vertical según el contenido
+                                                                                  // Obtener el ancho de la línea más larga
+
+            //============================================================
+            // Deshabilitar WordWrap
+
             editor.MouseLeftButtonDown += codeEditor1_MouseLeftButtonDown;
             editor.KeyDown += CodeEditor1_KeyDown;
 
@@ -1932,16 +2525,7 @@ namespace HP_PRIME_CODE
             }
 
             // Cargar Colores ============
-            string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string xshdFilePath = System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL.xshd");
-
-            using (Stream s = File.OpenRead(xshdFilePath))
-            {
-                using (XmlTextReader reader = new XmlTextReader(s))
-                {
-                    editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-                }
-            }
+            LoadSyntaxHighlighting(editor); // aplica Syntasix color
 
             // Asume que "codeEditor1" es el nombre de tu TextEditor
             editor.TextArea.IndentationStrategy = new MyIndentationStrategy();
@@ -1963,12 +2547,11 @@ namespace HP_PRIME_CODE
 
             //PARA PINTAR LINEA AL ESCRIBIR ================ EVENTO
 
-            var renderer = new HighlightCurrentLineBackgroundRenderer(editor, minimap);
-            editor.TextArea.TextView.BackgroundRenderers.Add(renderer);
+            Funcion_LineaMarcador(editor); // Resaltar linea
 
 
             //PARA GUIDE LINE ALCANCE DE CODIGO  =============== EVENTO
-            editor.TextArea.TextView.BackgroundRenderers.Add(new IndentationGuidesRenderer(editor.TextArea.TextView));
+            Funcion_LineaRango(editor);// Linea de Alcance
 
             //PARA ACTIVAR O DESACTIVAR CUT Y COPY =============== EVENTO
             // Inicializa las variables de la selección anterior
@@ -1982,70 +2565,178 @@ namespace HP_PRIME_CODE
             selectionChangedTimer.Tag = editor; // Asigna el TextEditor correcto al temporizador
             selectionChangedTimer.Start();
 
+
             //PARA MOSTRAR REFERENCIAS DE UNA SELECCION =============== EVENTO
             // Instala el resaltador de palabras en el TextArea
             _wordHighlighter = new WordHighlighter(editor);
             editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
 
-            // Inicializa el temporizador de resaltado
-            _highlightingTimer = new DispatcherTimer();
-            _highlightingTimer.Interval = TimeSpan.FromMilliseconds(100); // Comprueba cada 100 milisegundos
-            _highlightingTimer.Tick += HighlightingTimer_Tick;
-            _highlightingTimer.Start();
 
-            //PARA BUSQUEDA O REEMPLAZO DE TEXTO=============== EVENTO
-            // Inicializa el temporizador de resaltado
+            //      AGREGADO 2024 - II
+            // [1]Resaltado básico de pares de llaves/corchetes
+            Funcion_Resaltarllaves(editor); // Resaltar llaves
 
+            // [2] Pinta de colores diferentes a las llaves
+            FillLavesAperurasYcierres(editor);// Pinta llaves
 
+            // [3] Agregar el evento TextChanged para condicion de modificacion y mostrar **
+            editor.TextChanged += TextEditor_TextChanged;
 
         }
 
         // Método para buscar el ScrollViewer dentro de un elemento visual
-        private ScrollViewer FindScrollViewer(Visual visual)
+
+        // Define Crear nuevo
+        // Conjunto para llevar el registro de los números de pestañas ya utilizadas
+        private HashSet<int> usedTabs = new HashSet<int>();
+
+        // Método para crear una nueva pestaña
+        private void NuevoButton_Click(object sender, RoutedEventArgs e)
         {
-            if (visual is ScrollViewer scrollViewer)
+            // Buscar el número más bajo disponible
+            int nextAvailableTab = GetNextAvailableTabNumber();
+
+            // Asignar un nombre único para la nueva pestaña
+            string nuevoNombre = $"Nuevo {nextAvailableTab}";
+
+            // Crea un nuevo TabItem con el nombre único
+            TabItem newTab = new TabItem() { Header = nuevoNombre };
+
+            // Crea el editor de texto para la nueva pestaña
+            TextEditor newEditor = new TextEditor();
+            ConfigureEditor(newEditor);
+            newTab.Content = newEditor;
+
+            // Asigna el Tag (información sobre el archivo) de la nueva pestaña
+            newTab.Tag = new TabFileData
             {
-                return scrollViewer;
+                FilePath = null, // No tiene una ruta de archivo aún
+                Header = nuevoNombre, // Establece el Header correctamente
+                IsModified = false // No tiene contenido guardado
+            };
+
+            // Agrega la nueva pestaña a la colección
+            Tabs.Add(newTab);
+            tabControl.SelectedItem = newTab;
+
+            // Marca el número de la nueva pestaña como ocupado
+            usedTabs.Add(nextAvailableTab);
+
+            // Actualizar el minimapa después de que se haya completado el layout
+            Dispatcher.InvokeAsync(() =>
+            {
+                // Establecer la altura del minimapa
+                minimap.Height = newEditor.ActualHeight;
+
+                // Redibujar el minimapa si es necesario
+                if (_lastSelectedWord != null)
+                {
+                    UpdateMinimap(_lastSelectedWord);
+                }
+            }, System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+
+        // Método para obtener el próximo número disponible para una nueva pestaña
+        private int GetNextAvailableTabNumber()
+        {
+            // Comienza en 1 y busca el primer número que no esté en usedTabs
+            int nextTabNumber = 1;
+            while (usedTabs.Contains(nextTabNumber))
+            {
+                nextTabNumber++;
+            }
+            return nextTabNumber;
+        }
+
+        // Define the CloseTabCommand
+        public ICommand CloseTabCommand { get; private set; }
+
+        private async void CloseTab(object parameter)
+        {
+            if (parameter is not TabItem tabToClose) return;
+
+            TextEditor editor = tabToClose.Content as TextEditor;
+            TabFileData fileData = tabToClose.Tag as TabFileData;
+
+            if (editor == null || fileData == null) return;
+
+            bool isNewFile = string.IsNullOrEmpty(fileData.FilePath); // Verifica si es un archivo nuevo
+            bool hasUnsavedChanges = fileData.IsModified; // Utiliza IsModified para verificar cambios
+
+            // Si es un archivo nuevo y no tiene cambios, se puede cerrar sin preguntar
+            if (isNewFile && string.IsNullOrEmpty(editor.Text))
+            {
+                // Liberar el número de la pestaña si es una nueva pestaña sin guardar
+                string header = tabToClose.Header.ToString();
+                if (header.StartsWith("Nuevo"))
+                {
+                    // Eliminar el asterisco del nombre de la pestaña
+                    header = header.Replace("*", "");
+
+                    int tabNumber = int.Parse(header.Split(' ')[1]);
+                    usedTabs.Remove(tabNumber); // Liberar el número de la pestaña
+                }
+
+                Tabs.Remove(tabToClose); // Cerrar la pestaña
+                return;
             }
 
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visual); i++)
+            // Si hay cambios sin guardar, preguntar al usuario
+            if (hasUnsavedChanges)
             {
-                var child = VisualTreeHelper.GetChild(visual, i) as Visual;
-                if (child != null)
+                var uiMessageBox = new Wpf.Ui.Controls.MessageBox
                 {
-                    var foundScrollViewer = FindScrollViewer(child);
-                    if (foundScrollViewer != null)
+                    Title = "Guardar",
+                    Content = "¿Deseas guardar los cambios antes de Cerrar la Pestaña?",
+                    PrimaryButtonText = "Si",
+                    SecondaryButtonText = "No",
+                    CloseButtonText = "Cancelar",
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+
+
+                // Muestra el cuadro de diálogo y espera el resultado
+                var result = await uiMessageBox.ShowDialogAsync();
+
+                if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+                {
+                    // Guardar el archivo, ya sea nuevo o existente
+                    if (isNewFile)
                     {
-                        return foundScrollViewer;
+                        // Si es un archivo nuevo, usa SaveAsFile para obtener una ruta
+                        if (!SaveAsFile(editor, fileData)) return; // Cancela el cierre si el usuario no guarda
                     }
+                    else
+                    {
+                        // Si es un archivo existente, guarda directamente
+                        SaveFile(editor, fileData);
+                    }
+                }
+                else if (result == Wpf.Ui.Controls.MessageBoxResult.None)
+                {
+                    return; // El usuario canceló el cierre, no seguir
                 }
             }
 
-            return null;
+            // **Mover este bloque al final**
+            // Liberar el número de la pestaña si es una nueva pestaña sin guardar
+            string tabHeader = tabToClose.Header.ToString();
+            if (tabHeader.StartsWith("Nuevo"))
+            {                    // Eliminar el asterisco del nombre de la pestaña
+                tabHeader = tabHeader.Replace("*", "");
+                int tabNumber = int.Parse(tabHeader.Split(' ')[1]);
+                usedTabs.Remove(tabNumber); // Liberar el número de la pestaña
+            }
+
+            // Finalmente, elimina la pestaña de la colección
+            Tabs.Remove(tabToClose);
         }
 
 
-        // Aplicando el boton nuevo para creacion de nuevas pestañas
-        private void NuevoButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Crea una nueva pestaña
-            TabItem newTab = new TabItem() { Header = "Nuevo archivo" };
 
-            // Crea un nuevo editor de código
-            TextEditor newEditor = new TextEditor();
-            ConfigureEditor(newEditor); // Configura el nuevo editor
-
-            // Agrega el editor de código como contenido de la pestaña
-            newTab.Content = newEditor;
-
-            // Agrega la pestaña al TabControl
-            tabControl.Items.Add(newTab);
-
-            // Selecciona la nueva pestaña
-            tabControl.SelectedItem = newTab;
-        }
         //BOTON GUARDAR COMO
-        private void GuardarComoButton_Click(object sender, RoutedEventArgs e)
+        private void GuardarTodoButton_Click(object sender, RoutedEventArgs e)
         {
             // Restablecer el nombre del archivo actual para forzar al método SaveFile a mostrar el cuadro de diálogo de guardar archivo
             currentFile = null;
@@ -2053,79 +2744,543 @@ namespace HP_PRIME_CODE
         }
 
         //BOTON GUARDAR
+        // Método para el botón de guardar en la barra de herramientas
         private void GuardarButton_Click(object sender, RoutedEventArgs e)
         {
-            //SaveFile();
-        }
+            // Obtener la pestaña activa
+            TabItem activeTab = (TabItem)tabControl.SelectedItem;
+            if (activeTab == null) return;
 
-        
-        // Método para guardar el archivo
-        void SaveFile()
-        {
-            if (currentFile == null)
+            // Obtener el editor y la información del archivo de la pestaña activa
+            TextEditor editor = activeTab.Content as TextEditor;
+            TabFileData fileData = activeTab.Tag as TabFileData;
+
+            // Si no hay un editor o los datos del archivo, no hacer nada
+            if (editor == null || fileData == null) return;
+
+            // Si es un archivo nuevo, preguntar por la ubicación para guardar (Save As)
+            if (string.IsNullOrEmpty(fileData.FilePath))
             {
-                // Mostrar el cuadro de diálogo de guardar archivo si no hay un archivo actualmente abierto
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "HP Code Files (*.hpcode)|*.hpcode|HP Prime Program Files (*.hpprgm)|*.hpprgm";
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    currentFile = saveFileDialog.FileName;
-                }
-                else
-                {
-                    // El usuario canceló el cuadro de diálogo de guardar archivo, así que no hacemos nada
-                    return;
-                }
+                SaveAsFile(editor, fileData);
             }
-
-            // Guardar el contenido del TextEditor en el archivo actual
-            File.WriteAllText(currentFile, codeEditor1.Text);
-
-            // Actualizar lastSavedContent con el contenido actual del editor
-            lastSavedContent = codeEditor1.Text;
+            else
+            {
+                // Si el archivo ya tiene una ruta, solo guardarlo
+                SaveFile(editor, fileData);
+            }
         }
-        
 
-        
-        //BOTON ABRIR
+
+
         private void AbrirButton_Click(object sender, RoutedEventArgs e)
         {
-            // Comprobar si el contenido del editor ha cambiado desde la última vez que se guardó
-            if (codeEditor1.Text != lastSavedContent)
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                // Preguntar al usuario si desea guardar los cambios
-                MessageBoxResult result = MessageBox.Show("¿Desea guardar los cambios en el archivo actual antes de abrir uno nuevo?", "Guardar cambios", MessageBoxButton.YesNoCancel);
-                if (result == MessageBoxResult.Yes)
+                Filter = "HP Code Files (*.hpcode)|*.hpcode|HP Prime Program Files (*.hpprgm)|*.hpprgm"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                CrearNuevaPestana(openFileDialog.FileName);
+            }
+        }
+
+        private void CrearNuevaPestana(string filePath)
+        {
+            // Verificar si el archivo ya está abierto
+            foreach (TabItem tab in Tabs)
+            {
+                if (tab.Tag is TabFileData fileData && fileData.FilePath == filePath)
                 {
-                    // El usuario quiere guardar los cambios, así que llamamos al método SaveFile
-                    SaveFile();
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    // El usuario ha cancelado la apertura de un nuevo archivo, así que no hacemos nada
+                    // Si el archivo ya está abierto, selecciona la pestaña correspondiente
+                    tabControl.SelectedItem = tab;
                     return;
                 }
             }
 
-            // Mostrar el cuadro de diálogo de abrir archivo
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "HP Code Files (*.hpcode)|*.hpcode|HP Prime Program Files (*.hpprgm)|*.hpprgm";
-            if (openFileDialog.ShowDialog() == true)
-            {
-                // Leer el contenido del archivo y ponerlo en el editor
-                codeEditor1.Text = File.ReadAllText(openFileDialog.FileName);
+            // Crear una nueva pestaña si el archivo no está abierto
+            TabItem newTab = new TabItem { Header = System.IO.Path.GetFileName(filePath) }; // Establecer el Header con filePath
 
-                // Actualizar las variables currentFile y lastSavedContent
-                currentFile = openFileDialog.FileName;
-                lastSavedContent = codeEditor1.Text;
+            // Crear un nuevo editor de texto
+            TextEditor newEditor = new TextEditor();
+            ConfigureEditor(newEditor);
+            newEditor.Text = File.ReadAllText(filePath);
+
+            // Guardar la ruta y el contenido inicial del archivo en la propiedad Tag
+            newTab.Content = newEditor;
+            newTab.Tag = new TabFileData
+            {
+                FilePath = filePath,
+                Header = System.IO.Path.GetFileName(filePath), // Establecer el Header en TabFileData
+                IsModified = false // Inicializar IsModified como false
+            };
+
+            // Añadir la nueva pestaña a la colección ObservableCollection
+            Tabs.Add(newTab);
+
+            // Seleccionar la nueva pestaña
+            tabControl.SelectedItem = newTab;
+
+            // Actualizar el minimapa después de que se haya completado el layout
+            Dispatcher.InvokeAsync(() =>
+            {
+                // Establecer la altura del minimapa
+                minimap.Height = newEditor.ActualHeight;
+
+                // Redibujar el minimapa si es necesario
+                if (_lastSelectedWord != null)
+                {
+                    UpdateMinimap(_lastSelectedWord);
+                }
+            }, System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+
+
+
+
+        // Método para guardar el archivo de la pestaña activa
+        // Guarda el archivo existente
+        private void SaveFile(TextEditor editor, TabFileData fileData)
+        {
+            if (fileData.FilePath == null) return;
+
+            File.WriteAllText(fileData.FilePath, editor.Text);
+            fileData.IsModified = false; // Actualiza IsModified a false después de guardar
+
+            // Actualiza el nombre de la pestaña
+            TabItem tabItem = Tabs.FirstOrDefault(t => t.Tag == fileData);
+            if (tabItem != null)
+            {
+                tabItem.Header = ((string)tabItem.Header).Replace("*", "");
             }
         }
-        
+
+        // Abre un cuadro de diálogo para guardar como un nuevo archivo
+        private bool SaveAsFile(TextEditor editor, TabFileData fileData)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "HP Code Files (*.hpcode)|*.hpcode|HP Prime Program Files (*.hpprgm)|*.hpprgm";
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                fileData.FilePath = saveFileDialog.FileName;
+                File.WriteAllText(fileData.FilePath, editor.Text);
+                fileData.IsModified = false; // Actualiza IsModified a false después de guardar
+
+                // Actualiza el nombre de la pestaña
+                TabItem tabItem = Tabs.FirstOrDefault(t => t.Tag == fileData);
+                if (tabItem != null)
+                {
+                    tabItem.Header = ((string)tabItem.Header).Replace("*", "");
+                }
+                return true; // Guardado completado
+            }
+
+            return false; // Guardado cancelado
+        }
+
         //BOTON IMPRIMIR
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
 
+            // Crear un FlowDocument a partir del contenido del editor
+            FlowDocument flowDocument = DocumentPrinter.CreateFlowDocumentForEditor(editor);
+
+            // Mostrar el cuadro de diálogo de impresión
+            PrintDialog printDialog = new PrintDialog();
+            if (printDialog.ShowDialog() == true)
+            {
+                // Crear un contenedor para el FlowDocument
+                IDocumentPaginatorSource paginator = flowDocument;
+
+                // Enviar el documento a la impresora
+                printDialog.PrintDocument(paginator.DocumentPaginator, "Impresión del editor");
+            }
         }
+
+
+
+
+
+
+        //=========================================================================================
+        //
+        //                            PARA BARRA DE HERRAMIENTAS VISTA 
+        //
+        //=========================================================================================
+        //Selecion de Fuente
+        private void ComboBoxFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Obtén el nombre de la fuente seleccionada
+            var selectedFontName = ((ComboBoxItem)(sender as ComboBox).SelectedItem).Content.ToString();
+
+            if (Application.Current.Resources.Contains(selectedFontName))
+            {
+                // Encuentra y asigna la fuente desde los recursos
+                FontFamily selectedFont = (FontFamily)Application.Current.FindResource(selectedFontName);
+
+                // Aplica la fuente a todos los editores
+                ApplyFontToAllEditors(selectedFont);
+
+                // Guarda la selección en la configuración
+                Properties.Settings.Default.EditorFont = selectedFontName;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+        private void ApplyFontToAllEditors(FontFamily selectedFont)
+        {
+            foreach (TabItem tab in Tabs)
+            {
+                // Verifica si el contenido de la pestaña es un TextEditor
+                if (tab.Content is TextEditor editor)
+                {
+                    // Asigna la fuente seleccionada al editor de la pestaña
+                    editor.FontFamily = selectedFont;
+                }
+            }
+        }
+
+        //Selecion de tamaño
+        private void ComboBoxFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboBoxFontSize.SelectedItem is ComboBoxItem selectedItem)
+            {
+                // Obtener el tamaño de fuente seleccionado
+                if (double.TryParse(selectedItem.Content.ToString(), out double selectedFontSize))
+                {
+                    // Aplicar el tamaño de fuente a todos los editores
+                    ApplyFontSizeToAllEditors(selectedFontSize);
+
+                    // Guardar el tamaño de fuente en la configuración
+                    Properties.Settings.Default.EditorFontSize = selectedFontSize;
+                    Properties.Settings.Default.Save();
+                }
+            }
+        }
+
+        private void ApplyFontSizeToAllEditors(double fontSize)
+        {
+            foreach (TabItem tab in Tabs)
+            {
+                // Verifica si el contenido de la pestaña es un TextEditor
+                if (tab.Content is TextEditor editor)
+                {
+                    // Asigna el tamaño de fuente seleccionado al editor
+                    editor.FontSize = fontSize;
+                }
+            }
+        }
+
+        //Selecion de Idioma
+        private void ComboBoxIdioma_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Obtén el ComboBox.
+            var comboBox = sender as ComboBox;
+
+            // Obtén el elemento seleccionado.
+            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+
+            // Comprueba el contenido del elemento seleccionado.
+            if (selectedItem.Content.ToString() == FindResource("es_Es").ToString())
+            {
+                // Si el elemento seleccionado es "es_Es", haz algo.
+                IdiomaSelected = 0;
+                Properties.Settings.Default.IdiomaSettings = IdiomaSelected; // Almacena valor en Settings
+                Properties.Settings.Default.Save();
+
+                ((App)Application.Current).ChangeLanguage(FindResource("es_Es").ToString());
+            }
+            else if (selectedItem.Content.ToString() == FindResource("en_En").ToString())
+            {
+                // Si el elemento seleccionado es "en_En", haz algo diferente.
+                IdiomaSelected = 1;
+                Properties.Settings.Default.IdiomaSettings = IdiomaSelected; //Almacena valor en Settings
+                Properties.Settings.Default.Save();
+
+                ((App)Application.Current).ChangeLanguage(FindResource("en_En").ToString());
+            }
+            // Y así sucesivamente para los demás elementos...
+        }
+
+        //Selecion de Thema
+        private void Boton_ThemeLight(object sender, RoutedEventArgs e)
+        {
+            ThemeVigaUIpanel.Text = "\uE706";
+
+            // Cierra el Popup
+            CustomDropdownPopup.IsOpen = false;
+            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Light);
+
+            Properties.Settings.Default.TemaSettings = 0; //Almacena valor en Settings
+            //Properties.Settings.Default.TransparenciaSettings = 0; //Almacena valor en Settings
+            Properties.Settings.Default.Save();
+
+            ((App)Application.Current).ChangeTheme("Light");
+
+            //UpdateButtons();
+            //Repintado de editor manualmente
+            UpdateEditorsTheme();
+        }
+
+        private void Boton_ThemeDark(object sender, RoutedEventArgs e)
+        {
+            ThemeVigaUIpanel.Text = "\uE708";
+            // Cierra el Popup
+            CustomDropdownPopup.IsOpen = false;
+            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Dark);
+
+            Properties.Settings.Default.TemaSettings = 1; //Almacena valor en Settings
+            //Properties.Settings.Default.TransparenciaSettings = 1; //Almacena valor en Settings
+            Properties.Settings.Default.Save();
+
+
+            ((App)Application.Current).ChangeTheme("Dark");
+
+            //UpdateButtons();
+            UpdateEditorsTheme();
+        }
+
+        private void UpdateEditorsTheme()
+        {
+            foreach (var item in tabControl.Items) // Asegúrate de usar el nombre correcto de tu TabControl
+            {
+                if (item is TabItem tabItem && tabItem.Content is TextEditor editor)
+                {
+                    // Aplica los nuevos colores desde los recursos
+                    editor.Background = (Brush)Application.Current.Resources["EditorFillColor"];
+                    editor.Foreground = (Brush)Application.Current.Resources["EditorTextColor"];
+                    editor.LineNumbersForeground = (Brush)Application.Current.Resources["EditorLineNumberColor"];
+                    LoadSyntaxHighlighting(editor); // aplica Syntasix color
+                    FillLavesAperurasYcierres(editor);// Pinta llaves
+                    Funcion_LineaRango(editor);// Linea de Alcance
+                    Funcion_LineaMarcador(editor); // Resaltar linea
+                    Funcion_Resaltarllaves(editor); // Resaltar llaves
+                }
+            }
+        }
+
+
+
+
+        private void LoadSyntaxHighlighting(TextEditor actualEditor)
+        {
+            double ThemeSelec = Properties.Settings.Default.TemaSettings;
+
+            try
+            {
+                // Obtén el directorio de la aplicación
+                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+                // Define el archivo XSHD según el tema seleccionado
+                string xshdFilePath = ThemeSelec switch
+                {
+                    0 => System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL_Light.xshd"), // Tema claro
+                    1 => System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL_Dark.xshd"),  // Tema oscuro
+                    _ => throw new InvalidOperationException("Tema no soportado.")
+                };
+
+                // Verifica si el archivo existe
+                if (!File.Exists(xshdFilePath))
+                {
+                    throw new FileNotFoundException($"No se encontró el archivo de estilo: {xshdFilePath}");
+                }
+
+                // Carga el archivo XSHD y aplícalo al editor
+                using (Stream s = File.OpenRead(xshdFilePath))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(s))
+                    {
+                        actualEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //MessageBox.Show($"Error al cargar el resaltado de sintaxis: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        } //Carga color de texto con thema
+
+        private void FillLavesAperurasYcierres(TextEditor actualEditor) 
+        {
+            double ThemeSelec = Properties.Settings.Default.TemaSettings;
+            BracketColorizer bracketColorizer = new BracketColorizer(ThemeSelec);
+            actualEditor.TextArea.TextView.LineTransformers.Add(bracketColorizer);
+        } // carga colores de llaves
+
+        private void Funcion_LineaRango(TextEditor actualEditor) 
+        {
+            actualEditor.TextArea.TextView.BackgroundRenderers.Add(new IndentationGuidesRenderer(actualEditor.TextArea.TextView));
+
+        }// Indentation rango de coddigo
+
+        private void Funcion_LineaMarcador(TextEditor actualEditor)
+        {
+            var renderer = new HighlightCurrentLineBackgroundRenderer(actualEditor, minimap);
+            actualEditor.TextArea.TextView.BackgroundRenderers.Add(renderer);
+        }// Resaltar linea con marcador
+
+        private void Funcion_Resaltarllaves(TextEditor actualEditor)
+        {
+            BracketHighlighter highlighter = new BracketHighlighter(actualEditor);
+            actualEditor.TextArea.TextView.BackgroundRenderers.Add(highlighter);
+        }// Resaltar apertura de llaves
+
+        //********************************************************************************************
+
+        //=========================================================================================
+        //
+        //    ******** UPPER            PARA GUARDAR DATOS Y CARGARLOS AL ABRIRI PROGRAMA OTRA VEZ
+        //
+        //=========================================================================================
+        //********************************************************************************************
+
+        //Evento guardar pestañas al cerrar programa
+
+        private void SaveTabsState()
+        {
+            // Crear una lista para almacenar el estado de las pestañas
+            var savedTabs = Tabs.Select(tab =>
+            {
+                if (tab.Content is TextEditor editor && tab.Tag is TabFileData fileData)
+                {
+                    return new TabFileData
+                    {
+                        Header = tab.Header.ToString(),
+                        FilePath = fileData.FilePath,
+                        Text = editor.Text,
+                        IsModified = fileData.IsModified,
+                        CaretLine = editor.TextArea.Caret.Line, // Guardar línea del cursor
+                        CaretColumn = editor.TextArea.Caret.Column // Guardar columna del cursor
+                    };
+                }
+                return null;
+            }).Where(data => data != null).ToList(); // Excluir pestañas sin datos
+
+            // Serializar y guardar en un archivo JSON
+            string json = JsonConvert.SerializeObject(savedTabs, Newtonsoft.Json.Formatting.Indented);
+            File.WriteAllText("TabsState.json", json);
+
+            // Guardar el índice de la pestaña activa en otro archivo o como parte del estado
+            File.WriteAllText("ActiveTabIndex.json", tabControl.SelectedIndex.ToString());
+        }
+
+        // Evento cargar pestañas Al abrir programa
+        private void LoadTabsState()
+        {
+            if (File.Exists("TabsState.json"))
+            {
+                string json = File.ReadAllText("TabsState.json");
+                List<TabFileData> savedTabs = JsonConvert.DeserializeObject<List<TabFileData>>(json);
+
+                usedTabs.Clear(); // Reinicia el conjunto de números utilizados
+
+                foreach (var fileData in savedTabs)
+                {
+                    TabItem restoredTab = new TabItem { Header = fileData.Header };
+
+                    TextEditor restoredEditor = new TextEditor();
+                    ConfigureEditor(restoredEditor);
+                    restoredEditor.Text = fileData.Text;
+
+                    // Establecer el Header de la pestaña
+                    restoredTab.Header = fileData.Header;
+
+                    // Restaurar caret y desplazamiento al abrir la pestaña
+                    restoredEditor.Loaded += (sender, e) =>
+                    {
+                        if (restoredTab.Tag is TabFileData data && !data.IsInitialized)
+                        {
+                            restoredEditor.TextArea.Caret.Line = data.CaretLine;
+                            restoredEditor.TextArea.Caret.Column = data.CaretColumn;
+                            restoredEditor.ScrollTo(data.CaretLine, data.CaretColumn);
+
+                            data.IsInitialized = true; // Marcar como inicializada
+                        }
+                    };
+
+                    // Asignar los datos al Tag
+                    fileData.IsInitialized = false; // Inicialmente no está inicializada
+                    restoredTab.Content = restoredEditor;
+                    restoredTab.Tag = fileData;
+
+                    Tabs.Add(restoredTab);
+
+                    // Si el nombre de la pestaña es "Nuevo X", agrega X a `usedTabs`
+                    if (fileData.Header.StartsWith("Nuevo"))
+                    {
+                        string[] parts = fileData.Header.Split(' ');
+                        if (int.TryParse(parts[1], out int tabNumber))
+                        {
+                            usedTabs.Add(tabNumber);
+                        }
+                    }
+                }
+
+                // Restaurar la pestaña activa
+                if (File.Exists("ActiveTabIndex.json"))
+                {
+                    string activeTabIndexStr = File.ReadAllText("ActiveTabIndex.json");
+                    if (int.TryParse(activeTabIndexStr, out int activeTabIndex) &&
+                        activeTabIndex >= 0 && activeTabIndex < Tabs.Count)
+                    {
+
+
+                        tabControl.SelectedIndex = activeTabIndex;
+
+
+                        // Asegurar el foco en el editor de la pestaña activa
+                        if (Tabs[activeTabIndex].Content is TextEditor activeEditor)
+                        {
+
+                            activeEditor.Focus();
+
+                            RedrawMinimap();
+                        }
+
+
+
+                    }
+                }
+
+
+            }
+        }
+
+
+        //Evento actualizar TabItem si se modifica texto o no *
+        private void TextEditor_TextChanged(object sender, EventArgs e)
+        {
+            TextEditor editor = (TextEditor)sender;
+            TabItem tabItem = editor.Parent as TabItem;
+            if (tabItem != null && tabItem.Tag is TabFileData fileData)
+            {
+                // Verificar si la pestaña ya tiene un asterisco
+                if (!fileData.Header.EndsWith("*"))
+                {
+                    // Agregar el asterisco al nombre de la pestaña
+                    fileData.Header += "*";
+                    tabItem.Header = fileData.Header;
+                }
+
+                // Marcar la pestaña como modificada
+                fileData.IsModified = true;
+            }
+        }
+
+
+
+
+
+
+
+
+
+        /*
+
 
 
         //==========================================
@@ -2278,7 +3433,7 @@ namespace HP_PRIME_CODE
             // Cerrar la ventana de progreso cuando se complete la operación
             progressWindow.Close();
         }
-        
+
 
         private static void SendKeyToWindow(IntPtr emulator, IntPtr key, char character, bool keyDown = true, bool keyUp = true)
         {
@@ -2328,7 +3483,7 @@ namespace HP_PRIME_CODE
 
         }
 
-
+        */
 
 
 

@@ -1,0 +1,26 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--HOME TEXT-->
+    <system:String x:Key="Archivo">File</system:String>
+    <system:String x:Key="Inicio">Home</system:String>
+    <system:String x:Key="Insertar">Insert</system:String>
+    <system:String x:Key="Dibujar">Draw</system:String>
+    <system:String x:Key="Revisar">Search</system:String>
+    <system:String x:Key="Vista">Wiev</system:String>
+    <system:String x:Key="Ayuda">Help</system:String>
+
+
+    <!--OPEN TEXT-->
+    <system:String x:Key="es_Es">Spanish</system:String>
+    <system:String x:Key="en_En">Inglish</system:String>
+
+    <system:String x:Key="Tool_Idioma">Localization</system:String>
+
+    <!--CUENTA TEXT-->
+
+
+    <!--HOME TEXT-->
+
+</ResourceDictionary>

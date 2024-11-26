@@ -18,15 +18,24 @@
                 <ui:ThemesDictionary Theme="Light" />
                 <ui:ControlsDictionary />
                 <ResourceDictionary x:Name="Theme1Resources" Source="Recursos/Color_Light.xaml" />
+                <ResourceDictionary x:Name="Theme1IconResources" Source="Recursos/IconLight.xaml" />
+                <ResourceDictionary x:Name="Theme1IdiomaResources" Source="Recursos/Idioma_Es.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <FontFamily x:Key="SegoeFluentIcons" >pack://application:,,,/FuentesIcon/#Segoe Fluent Icons</FontFamily>
-            <FontFamily x:Key="PrimeSansMono" >pack://application:,,,/FuentesIcon/#Prime Sans Mono</FontFamily>
-            <FontFamily x:Key="FiraMono" >pack://application:,,,/FuentesIcon/#Fira Mono</FontFamily>
+            
+            <FontFamily x:Key="Prime Sans Mono" >pack://application:,,,/FuentesIcon/#Prime Sans Mono</FontFamily>
+            <FontFamily x:Key="Fira Mono" >pack://application:,,,/FuentesIcon/#Fira Mono</FontFamily>
             <FontFamily x:Key="Inconsolata" >pack://application:,,,/FuentesIcon/#Inconsolata Condensed</FontFamily>
-            <FontFamily x:Key="YaHei" >pack://application:,,,/FuentesIcon/#Microsoft YaHei</FontFamily>
-            <FontFamily x:Key="ConsolasC" >pack://application:,,,/FuentesIcon/#Consolas</FontFamily>
+            <FontFamily x:Key="Consolas" >pack://application:,,,/FuentesIcon/#Consolas</FontFamily>
             <FontFamily x:Key="Menlo" >pack://application:,,,/FuentesIcon/#Menlo</FontFamily>
+            <FontFamily x:Key="Monospac 821" >pack://application:,,,/FuentesIcon/#Monospac821 BT</FontFamily>
+            <FontFamily x:Key="Cascadia Mono Regular">pack://application:,,,/FuentesIcon/#Cascadia Mono SemiLight</FontFamily>
+            <FontFamily x:Key="Cascadia Mono Light">pack://application:,,,/FuentesIcon/#Cascadia Mono Light</FontFamily>
+            <FontFamily x:Key="Cascadia Mono ExtraLight">pack://application:,,,/FuentesIcon/#Cascadia Mono ExtraLight</FontFamily>
+            <FontFamily x:Key="Courier New" >pack://application:,,,/FuentesIcon/#Courier New</FontFamily>
+
+
 
             <FontFamily x:Key="IconHP" >pack://application:,,,/FuentesIcon/#IconHP</FontFamily>
 
@@ -401,13 +410,12 @@
             <!--# BOTONES DE ARCHIVO INICIO, ES DECIR EN INTERFAZ PRINCIPAL DE DIBUJO W11 Theme-->
             <Style x:Key="tabButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                <Setter Property="Foreground" Value="{DynamicResource ColorCustomSemiNegroG}" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="Height" Value="30" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Margin" Value="20 0 0 0" />
-                <Setter Property="FontFamily" Value="{StaticResource YaHei}" />
                 <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled" />
@@ -683,6 +691,7 @@
 
 
             <!--//=====================-->
+            <!--PARA TAB CONTROL PARA PESTAÑAS-->
             <Style x:Key="CustomTabControlStyle" TargetType="TabControl">
                 <Setter Property="Background" Value="{StaticResource ColorCustomTheme}" />
                 <Setter Property="Template">
@@ -732,6 +741,14 @@
                                         </Grid>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="white" />
+                                                <Setter TargetName="Border1" Property="Background" Value="white" />
+                                                <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="Black" />
+                                                <Setter TargetName="Buton" Property="TextBlock.Foreground" Value="Black" />
+                                                <Setter TargetName="Buton" Property="Background" Value="white" />
+                                            </Trigger>
+                                            
+                                            <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="Border" Property="Background" Value="white" />
                                                 <Setter TargetName="Border1" Property="Background" Value="white" />
                                                 <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="Black" />
@@ -1133,11 +1150,13 @@
                         <Setter Property="Width" Value="Auto" />
                         <Setter Property="Height" Value="16" />
                         <Setter Property="Template" Value="{StaticResource UiHorizontalScrollBar}" />
+                        <Setter Property="Visibility" Value="Visible" />
                     </Trigger>
                     <Trigger Property="Orientation" Value="Vertical">
                         <Setter Property="Width" Value="20" />
                         <Setter Property="Height" Value="Auto" />
                         <Setter Property="Template" Value="{StaticResource UiVerticalScrollBar}" />
+
                     </Trigger>
                 </Style.Triggers>
             </Style>
