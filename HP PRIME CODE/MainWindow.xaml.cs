@@ -34,11 +34,14 @@ using System.Xml.Linq;
 using Wpf.Ui.Appearance;
 
 using HP_PRIME_CODE.Utility;
+using HP_PRIME_CODE.ClasesAdicionales;
 using System;
 using Wpf.Ui.Controls;
 using Button = System.Windows.Controls.Button;
 using MenuItem = System.Windows.Controls.MenuItem;
 using ICSharpCode.AvalonEdit.Utils;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+
 
 
 
@@ -63,26 +66,44 @@ namespace HP_PRIME_CODE
     //Espacio en condicionales
     public class MyIndentationStrategy : IIndentationStrategy
     {
+        private readonly string _indentation; // Define el carácter de indentación
+
+        public MyIndentationStrategy(string indentation = "\t")
+        {
+            _indentation = indentation;
+        }
+
         public void IndentLine(TextDocument document, DocumentLine line)
         {
-            var lines = document.Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
-            var indentation = "\t";
-            var openedBlock = Refactoring.FormatLines(ref lines, indentation);
+            // Texto de la línea actual
+            var lineText = document.GetText(line);
 
-            if (line.LineNumber <= lines.Count)
+            // Verifica si la línea está vacía o solo contiene espacios
+            if (string.IsNullOrWhiteSpace(lineText))
+                return;
+
+            // Calcula la indentación correcta usando Refactoring
+            var lines = document.Lines.Select(l => document.GetText(l)).ToList();
+            Refactoring.FormatLines(ref lines, _indentation);
+
+            // Obtiene la indentación calculada para la línea actual
+            var targetIndentation = lines[line.LineNumber - 1]
+                .TakeWhile(char.IsWhiteSpace)
+                .Count();
+
+            // Genera la nueva cadena de indentación
+            var newIndentation = new string('\t', targetIndentation);
+
+            // Obtiene la indentación actual de la línea
+            var currentIndentation = new string(lineText.TakeWhile(char.IsWhiteSpace).ToArray());
+
+            // Reemplaza la indentación si es diferente
+            if (newIndentation != currentIndentation)
             {
-                var indentations = lines[line.LineNumber - 1].TakeWhile(char.IsWhiteSpace).Count() / indentation.Length;
-                var newIndentation = new string('\t', indentations);
-
-                var lineText = document.GetText(line);
-                var lineIndentation = new string(lineText.TakeWhile(char.IsWhiteSpace).ToArray());
-
-                if (newIndentation != lineIndentation)
-                {
-                    document.Replace(line.Offset, lineIndentation.Length, newIndentation);
-                }
+                document.Replace(line.Offset, currentIndentation.Length, newIndentation);
             }
         }
+
         public void IndentLines(TextDocument document, int beginLine, int endLine)
         {
             for (int i = beginLine; i <= endLine; i++)
@@ -92,6 +113,7 @@ namespace HP_PRIME_CODE
         }
     }
 
+    // Para Replegar
     // Para Replegar
     public class MyFoldingStrategy
     {
@@ -114,6 +136,7 @@ namespace HP_PRIME_CODE
             var openingRegex = new Regex(@"^\s*(BEGIN|IFERR|IF|FOR|WHILE|REPEAT|CASE)\b", RegexOptions.IgnoreCase);
             var closingRegex = new Regex(@"^\s*(END|UNTIL)\b", RegexOptions.IgnoreCase);
             var singleLineCaseRegex = new Regex(@"^\s*CASE\b.*END;", RegexOptions.IgnoreCase);
+            var singleLineIfRegex = new Regex(@"^\s*IF\b.*END;", RegexOptions.IgnoreCase); // Expresión regular para IF ... END en la misma línea
 
             for (int i = 0; i < document.LineCount; i++)
             {
@@ -124,27 +147,38 @@ namespace HP_PRIME_CODE
                 bool lineHasOpeningKeyword = openingRegex.IsMatch(text);
                 bool lineHasClosingKeyword = closingRegex.IsMatch(text);
                 bool lineIsSingleLineCase = singleLineCaseRegex.IsMatch(text);
+                bool lineIsSingleLineIf = singleLineIfRegex.IsMatch(text); // Verificar si la línea es un IF ... END de una sola línea
 
+                // Si encontramos una línea con IF y END en la misma línea (como IF ... END;)
+                if (lineIsSingleLineIf || lineIsSingleLineCase)
+                {
+                    // Omitir el procesamiento de este bloque de una sola línea
+                    continue;
+                }
+
+                // Detectar bloque de apertura (por ejemplo, IF) sin su cierre (END) en la misma línea
                 if (lineHasOpeningKeyword && !lineHasClosingKeyword)
                 {
                     startOffsets.Push(line.EndOffset); // Guarda el offset del bloque de inicio
                 }
-                else if (lineHasClosingKeyword && !lineHasOpeningKeyword && !lineIsSingleLineCase)
+                else if (lineHasClosingKeyword && !lineHasOpeningKeyword && !lineIsSingleLineCase && !lineIsSingleLineIf)
                 {
                     if (startOffsets.Count > 0)
                     {
                         int startOffset = startOffsets.Pop();
                         newFoldings.Add(new NewFolding(startOffset, line.EndOffset));
                     }
-                }
-            }
+                }     
+            }   
 
             // Manejo de bloques no cerrados (opcional)
             while (startOffsets.Count > 0)
             {
-                int startOffset = startOffsets.Pop();
+          
+                int startOffset = startOffsets.Pop();   
                 newFoldings.Add(new NewFolding(startOffset, document.TextLength)); // Hasta el final del documento
             }
+            
 
             // Ordenar los plegados por posición
             newFoldings.Sort((a, b) => a.StartOffset.CompareTo(b.StartOffset));
@@ -277,6 +311,8 @@ namespace HP_PRIME_CODE
                 textArea.Document.Replace(segment, this.Text);
             }
         }
+   
+    
     }
 
     // Pintar linea al escribir
@@ -346,8 +382,7 @@ namespace HP_PRIME_CODE
         }
     }
 
-
-    // Guide lines alcance de codigo
+    // Alcance de linea
     public class IndentationGuidesRenderer : IBackgroundRenderer
     {
         private readonly TextView _textView;
@@ -417,6 +452,77 @@ namespace HP_PRIME_CODE
             }
         }
     }
+
+    //Pintado de bloque rojo
+    public class BlockHighlighter : IBackgroundRenderer
+    {
+        private readonly TextEditor _textEditor;
+        private readonly BlockDetector _blockDetector;
+        private readonly Brush _highlightBrush;
+
+        public BlockHighlighter(TextEditor textEditor)
+        {
+            _textEditor = textEditor;
+            _blockDetector = new BlockDetector(textEditor);
+            _highlightBrush = new SolidColorBrush(Color.FromArgb(80, 255, 0, 0)); // Fondo rojo translúcido
+        }
+
+        public KnownLayer Layer => KnownLayer.Background;
+
+        public void Draw(TextView textView, DrawingContext drawingContext)
+        {
+            textView.EnsureVisualLines();
+
+            var document = _textEditor.Document;
+            if (document == null) return;
+
+            var activeBlock = _blockDetector.GetActiveBlock(document);
+            if (activeBlock == null) return;
+
+            var (startLine, endLine) = activeBlock.Value;
+
+            // Verificar si el bloque está en una sola línea (IF ... END en una misma línea)
+            if (startLine == endLine)
+            {
+                // Omitir el resaltado para este bloque, pero no detener el resto del proceso
+                //continue; 
+            }
+
+            // Obtener la indentación del bloque
+            int blockIndentation = GetIndentationLevel(document, startLine);
+
+            // Dibujar el fondo para las líneas dentro del bloque activo
+            foreach (var visualLine in textView.VisualLines)
+            {
+                var lineNumber = visualLine.FirstDocumentLine.LineNumber;
+
+                // Si la línea está dentro del bloque activo y no es la línea de apertura ni de cierre
+                if (lineNumber > startLine && lineNumber < endLine)
+                {
+                    // Calcular la posición X de la guía de indentación solo para las líneas dentro del bloque
+                    double guideX = Math.Round(textView.WideSpaceWidth * blockIndentation * _textEditor.Options.IndentationSize) - textView.ScrollOffset.X + 0.5;
+
+                    // Dibujar la guía de indentación activa
+                    drawingContext.DrawLine(new Pen(_highlightBrush, 1),
+                        new Point(guideX, visualLine.VisualTop - textView.ScrollOffset.Y),
+                        new Point(guideX, visualLine.VisualTop + visualLine.Height - textView.ScrollOffset.Y));
+                }
+            }
+        }
+
+        // Función auxiliar para obtener el nivel de indentación de una línea
+        private int GetIndentationLevel(TextDocument document, int lineNumber)
+        {
+            if (lineNumber < 1 || lineNumber > document.LineCount)
+                return 0;
+
+            string line = document.GetText(document.GetLineByNumber(lineNumber));
+            return line.TakeWhile(char.IsWhiteSpace).Count() / _textEditor.Options.IndentationSize;
+        }
+    }
+
+
+
 
     // Seleccionar un Texto y sus copias
     // El resaltador
@@ -2017,11 +2123,25 @@ namespace HP_PRIME_CODE
 
         // FUNCIONES PARA MANEJAR EDITOR AVALON EDIT  =============================================================
 
+        //==============================================================
         // para autocompletado
         void textEditor_TextArea_TextEntered(object sender, TextCompositionEventArgs e)
         {
-            // Obtén el TextEditor de la pestaña activa
             TextEditor editor = GetActiveTextEditor();
+
+            if (editor != null)
+            {
+                // Manejo del autocompletado
+                HandleAutocomplete(editor, e);
+
+                // Manejo de la indentación automática
+                HandleAutoIndentation(editor, e);
+            }
+        }
+
+        // Método para manejar el autocompletado
+        private void HandleAutocomplete(TextEditor editor, TextCompositionEventArgs e)
+        {
 
             if (editor != null)
             {
@@ -2201,7 +2321,37 @@ namespace HP_PRIME_CODE
             }
         }
 
+        // Método para manejar la indentación automática
+        private void HandleAutoIndentation(TextEditor editor, TextCompositionEventArgs e)
+        {
+            if (e.Text == "\n") // Detectar cuando se presiona Enter
+            {
+                if (editor == null) return;
 
+                // Obtener la posición del cursor después del salto
+                var caret = editor.TextArea.Caret;
+                var currentLine = editor.Document.GetLineByNumber(caret.Line);
+                var previousLine = editor.Document.GetLineByNumber(caret.Line - 1);
+
+                // Obtener el texto de la línea anterior
+                var previousLineText = editor.Document.GetText(previousLine);
+
+                // Obtener la información del bloque actual
+                var blockDetector = new BlockAnalyzer();
+                var blockState = blockDetector.GetBlockState(editor.Document.Lines.Select(l => editor.Document.GetText(l)).ToList(), caret.Line - 1);
+
+                // Calcular la indentación basada en la profundidad del bloque
+                var indentationLevel = blockState?.depth ?? 0;  // Si no hay bloque, la indentación es 0
+                var leadingWhitespace = new string(' ', indentationLevel * 4); // Ajusta el tamaño de la indentación según tus preferencias
+
+                // Aplicar la indentación calculada a la línea actual
+                editor.Document.Insert(currentLine.Offset, leadingWhitespace);
+                editor.TextArea.Caret.Offset = currentLine.Offset + leadingWhitespace.Length;
+            }
+        }
+
+
+        //========================================
         void codeEditor1_TextArea_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // Obtén el TextEditor de la pestaña activa
@@ -2300,31 +2450,24 @@ namespace HP_PRIME_CODE
                         else
                         {
                             // Si el cursor no está sobre una palabra, oculta el Popup
-                            if (tooltipPopup != null)
-                            {
-                                tooltipPopup.IsOpen = false;
-                            }
+                            CloseTooltip();
                         }
                     }
                     else
                     {
                         // Si el cursor no está sobre una línea de texto, oculta el Popup
-                        if (tooltipPopup != null)
-                        {
-                            tooltipPopup.IsOpen = false;
-                        }
+                        CloseTooltip();
                     }
                 }
                 else
                 {
                     // Si el cursor no está sobre el editor de texto, oculta el Popup
-                    if (tooltipPopup != null)
-                    {
-                        tooltipPopup.IsOpen = false;
-                    }
+                    CloseTooltip();
                 }
             }
         }
+
+
         //crear panel hoover si existe comando 
         private void Panel_Hover(List<string> infoList)
         {
@@ -2354,21 +2497,32 @@ namespace HP_PRIME_CODE
                     // Crear un TextEditor
                     var textEditor = new TextEditor
                     {
+
+
                         IsReadOnly = true, // Hace que el TextEditor sea de solo lectura
-                        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F6F6F6")), // Cambia el color de fondo a blanco
-                        Foreground = Brushes.Black, // Cambia el color del texto a negro
+                        //Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F6F6F6")), // Cambia el color de fondo a blanco
+                        Background = (Brush)Application.Current.Resources["PanelHooverColor"],
+                        Foreground = (Brush)Application.Current.Resources["PanelHooverTextColor"], // Cambia el color del texto a negro
                         BorderThickness = new Thickness(0), // Elimina el borde
                         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, // Establece la visibilidad de la barra de desplazamiento horizontal
                         VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, // Establece la visibilidad de la barra de desplazamiento vertical
                         Margin = new Thickness(10, 0, 10, 0), // Establece un relleno alrededor del TextEditor
                         Text = info,
-                        FontFamily = (FontFamily)Application.Current.Resources["Consolas"],
+                        FontSize = 12,
+                        FontFamily = (FontFamily)Application.Current.Resources["Cascadia Mono Light"],
 
 
                     };
 
+                    // Configurar opciones de renderizado de texto para mejor claridad y nitidez
+                    TextOptions.SetTextFormattingMode(textEditor, TextFormattingMode.Ideal);
+                    TextOptions.SetTextRenderingMode(textEditor, TextRenderingMode.ClearType);
+                    TextOptions.SetTextHintingMode(textEditor, TextHintingMode.Fixed);
+
+
                     // Cargar el archivo XSHD personalizado
-                    LoadSyntaxHighlighting(editor); // aplica Syntasix color
+                    LoadSyntaxHighlighting(textEditor); // aplica Syntasix color
+                    FillLavesAperurasYcierres(textEditor);// Pinta llaves
 
                     TextOptions.SetTextRenderingMode(textEditor, TextRenderingMode.ClearType);
                     RenderOptions.SetClearTypeHint(textEditor, ClearTypeHint.Enabled);
@@ -2390,8 +2544,8 @@ namespace HP_PRIME_CODE
                 var border = new Border
                 {
                     Child = stackPanel,
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F6F6F6")),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CCCEDB")), // Cambia el color del borde a negro
+                    Background = (Brush)Application.Current.Resources["PanelHooverColor"],
+                    BorderBrush = (Brush)Application.Current.Resources["ColorContextBorde"], // Cambia el color del borde a negro
                     BorderThickness = new Thickness(1), // Establece el grosor del borde
                     Margin = new Thickness(2),
                     CornerRadius = new CornerRadius(2), // Establece el CornerRadius
@@ -2408,7 +2562,19 @@ namespace HP_PRIME_CODE
             }
         }
 
+        private void Editor_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            CloseTooltip();
+        }
 
+        // Método para ocultar el tooltip
+        private void CloseTooltip()
+        {
+            if (tooltipPopup != null && tooltipPopup.IsOpen)
+            {
+                tooltipPopup.IsOpen = false;
+            }
+        }
 
 
 
@@ -2432,11 +2598,16 @@ namespace HP_PRIME_CODE
             TextOptions.SetTextHintingMode(editor, TextHintingMode.Fixed);
 
             // [1] Configura el editor con las propiedades Esteticas
-            editor.Margin = new Thickness(0);
+            editor.Margin = new Thickness(0, 0, 0, 0);
+            editor.Options.ConvertTabsToSpaces = true; // Usar espacios en lugar de tabulaciones
+            editor.Options.IndentationSize = 4;
 
             editor.Background = (Brush)Application.Current.Resources["EditorFillColor"];
             editor.Foreground = (Brush)Application.Current.Resources["EditorTextColor"];
             editor.LineNumbersForeground = (Brush)Application.Current.Resources["EditorLineNumberColor"];
+            editor.TextArea.SelectionBrush = (Brush)Application.Current.Resources["EditorSelectionColor"];  // Cambia "LightBlue" al color que prefieras.                                                                                                                       // Elimina el borde de la selección
+            editor.TextArea.SelectionBorder = null;
+            editor.TextArea.SelectionForeground = null;
 
             // Cargar el tamaño de fuente desde la configuración
             double fontSize = Properties.Settings.Default.EditorFontSize;
@@ -2461,7 +2632,6 @@ namespace HP_PRIME_CODE
                                                                                   // Obtener el ancho de la línea más larga
 
             //============================================================
-            // Deshabilitar WordWrap
 
             editor.MouseLeftButtonDown += codeEditor1_MouseLeftButtonDown;
             editor.KeyDown += CodeEditor1_KeyDown;
@@ -2499,21 +2669,12 @@ namespace HP_PRIME_CODE
             editor.ContextMenu.Items.Add(new Separator());
             editor.ContextMenu.Items.Add(menuItemSelectAll);
 
+            //==========================================
+            //[2] Panel hoover al pasar mouse encima de Comandos
+            Funcion_PanelHoover(editor); // Muestra panel hoover
 
-            //[2] Propiedades netamente del editor
-            editor.TextArea.TextView.MouseMove += TextView_MouseMove; // funcion ver hover  popup
-
-            editor.MouseLeave += (sender, e) => // oculta hover popup si se sale del editor
-            {
-                // Cerrar el Popup cuando el mouse sale de codeEditor1
-                if (tooltipPopup != null)
-                {
-                    tooltipPopup.IsOpen = false;
-                }
-            };
-
-            // numeracion  =============
-            // Asume que "textEditor" es el nombre de tu TextEditor
+            // ==============================
+            // Ancho de Numeracion del editor
             foreach (var margin in editor.TextArea.LeftMargins)
             {
                 if (margin is LineNumberMargin lineNumberMargin)
@@ -2524,12 +2685,15 @@ namespace HP_PRIME_CODE
                 }
             }
 
+            //==========================================
             // Cargar Colores ============
             LoadSyntaxHighlighting(editor); // aplica Syntasix color
 
+            //==========================================
             // Asume que "codeEditor1" es el nombre de tu TextEditor
             editor.TextArea.IndentationStrategy = new MyIndentationStrategy();
 
+            //==========================================
             //  REPLEGAR  ===========
             var foldingManager = FoldingManager.Install(editor.TextArea);
             var foldingStrategy = new MyFoldingStrategy(editor);
@@ -2539,25 +2703,28 @@ namespace HP_PRIME_CODE
                 foldingStrategy.UpdateFoldings(foldingManager, editor.Document);
             };
 
+            //==========================================
             //AUTO COMPLETADO ====================
             // Agrega los manejadores de eventos para TextEntering y TextEntered
             editor.TextArea.PreviewKeyDown += codeEditor1_TextArea_PreviewKeyDown;
             editor.TextArea.TextEntered += textEditor_TextArea_TextEntered;
 
-
+            //==========================================
             //PARA PINTAR LINEA AL ESCRIBIR ================ EVENTO
 
             Funcion_LineaMarcador(editor); // Resaltar linea
 
-
+            //==========================================
             //PARA GUIDE LINE ALCANCE DE CODIGO  =============== EVENTO
             Funcion_LineaRango(editor);// Linea de Alcance
 
+            //==========================================
             //PARA ACTIVAR O DESACTIVAR CUT Y COPY =============== EVENTO
             // Inicializa las variables de la selección anterior
             previousSelectionStart = editor.SelectionStart;
             previousSelectionLength = editor.SelectionLength;
 
+            //==========================================
             // Crea un temporizador para comprobar regularmente si la selección ha cambiado
             selectionChangedTimer = new DispatcherTimer();
             selectionChangedTimer.Interval = TimeSpan.FromMilliseconds(100); // Comprueba cada 100 milisegundos
@@ -2565,20 +2732,21 @@ namespace HP_PRIME_CODE
             selectionChangedTimer.Tag = editor; // Asigna el TextEditor correcto al temporizador
             selectionChangedTimer.Start();
 
-
+            //==========================================
             //PARA MOSTRAR REFERENCIAS DE UNA SELECCION =============== EVENTO
             // Instala el resaltador de palabras en el TextArea
             _wordHighlighter = new WordHighlighter(editor);
             editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
 
-
+            //==========================================
             //      AGREGADO 2024 - II
             // [1]Resaltado básico de pares de llaves/corchetes
             Funcion_Resaltarllaves(editor); // Resaltar llaves
-
+            //==========================================
             // [2] Pinta de colores diferentes a las llaves
             FillLavesAperurasYcierres(editor);// Pinta llaves
 
+            //==========================================
             // [3] Agregar el evento TextChanged para condicion de modificacion y mostrar **
             editor.TextChanged += TextEditor_TextChanged;
 
@@ -3054,18 +3222,24 @@ namespace HP_PRIME_CODE
                     editor.Background = (Brush)Application.Current.Resources["EditorFillColor"];
                     editor.Foreground = (Brush)Application.Current.Resources["EditorTextColor"];
                     editor.LineNumbersForeground = (Brush)Application.Current.Resources["EditorLineNumberColor"];
+                    editor.TextArea.SelectionBrush = (Brush)Application.Current.Resources["EditorSelectionColor"];  // Cambia "LightBlue" al color que prefieras.                                                                                                                       // Elimina el borde de la selección
+                    editor.TextArea.SelectionBorder = null;
+                    editor.TextArea.SelectionForeground = null;
                     LoadSyntaxHighlighting(editor); // aplica Syntasix color
                     FillLavesAperurasYcierres(editor);// Pinta llaves
                     Funcion_LineaRango(editor);// Linea de Alcance
                     Funcion_LineaMarcador(editor); // Resaltar linea
                     Funcion_Resaltarllaves(editor); // Resaltar llaves
+                    Funcion_PanelHoover(editor); // Muestra panel hoover
+
+
                 }
             }
         }
 
 
 
-
+        // Funciones De Editor
         private void LoadSyntaxHighlighting(TextEditor actualEditor)
         {
             double ThemeSelec = Properties.Settings.Default.TemaSettings;
@@ -3114,7 +3288,9 @@ namespace HP_PRIME_CODE
         private void Funcion_LineaRango(TextEditor actualEditor) 
         {
             actualEditor.TextArea.TextView.BackgroundRenderers.Add(new IndentationGuidesRenderer(actualEditor.TextArea.TextView));
+            actualEditor.TextArea.TextView.BackgroundRenderers.Add(new BlockHighlighter(actualEditor));
 
+            
         }// Indentation rango de coddigo
 
         private void Funcion_LineaMarcador(TextEditor actualEditor)
@@ -3128,6 +3304,35 @@ namespace HP_PRIME_CODE
             BracketHighlighter highlighter = new BracketHighlighter(actualEditor);
             actualEditor.TextArea.TextView.BackgroundRenderers.Add(highlighter);
         }// Resaltar apertura de llaves
+
+        private void Funcion_PanelHoover(TextEditor actualEditor)
+        {
+            actualEditor.TextArea.TextView.MouseMove += TextView_MouseMove; // funcion ver hover  popup
+            actualEditor.PreviewMouseDown += Editor_PreviewMouseDown; // Cerrar popup an hacer click en el editor
+
+            actualEditor.MouseLeave += (sender, e) => // oculta hover popup si se sale del editor
+            {
+                // Cerrar el Popup cuando el mouse sale de codeEditor1
+                CloseTooltip();
+            };
+        }// Mostrar panel hoover de comandos
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         //********************************************************************************************
 

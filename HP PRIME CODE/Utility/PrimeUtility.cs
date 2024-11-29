@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 public static class Refactoring
 {
 
-    private static CodeBlock[] _codeBlocks;
+    public static CodeBlock[] _codeBlocks;
 
     /// <summary>
     /// Formats the code indentation

@@ -149,10 +149,14 @@
     <Color x:Key="EditorFillColorDefault">#1E1E1E</Color>
     <Color x:Key="EditorTextColorDefault">LightSkyBlue</Color>
     <Color x:Key="EditorLineNumberColorDefault">#858385</Color>
+    <Color x:Key="EditorSelectionColorDefault">#80055FB5</Color>
+
 
     <SolidColorBrush x:Key="EditorFillColor" Color="{StaticResource EditorFillColorDefault}" /> 
     <SolidColorBrush x:Key="EditorTextColor" Color="{StaticResource EditorTextColorDefault}" />
     <SolidColorBrush x:Key="EditorLineNumberColor" Color="{StaticResource EditorLineNumberColorDefault}" />
+    <SolidColorBrush x:Key="EditorSelectionColor" Color="{StaticResource EditorSelectionColorDefault}" />
+
 
     <!-- TabControl Dynamic Editor  -->
 
@@ -161,5 +165,12 @@
 
     <Color x:Key="TabControlActivate">#1E1E1E</Color>
     <SolidColorBrush x:Key="TabControlActivateColor" Color="{StaticResource TabControlActivate}" />
+
+    <!-- Para Panel Hoover  -->
+    <Color x:Key="PanelHooverColorDefault">#252526</Color>
+    <Color x:Key="PanelHooverTextColorDefault">#CCCCCC</Color>
+    
+    <SolidColorBrush x:Key="PanelHooverColor" Color="{StaticResource PanelHooverColorDefault}" />
+    <SolidColorBrush x:Key="PanelHooverTextColor" Color="{StaticResource PanelHooverTextColorDefault}" />
 
 </ResourceDictionary>

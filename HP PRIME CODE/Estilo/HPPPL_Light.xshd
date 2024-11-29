@@ -1,6 +1,6 @@
 ﻿<SyntaxDefinition name="HPPPL_Light"
     xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-<Color name="Comment" foreground="Green" />
+<Color name="Comment" foreground="DarkGreen" />
 <Color name="String" foreground="#A31515" />
 <Color name="Xml" foreground="Orange" />
 <!-- This is the main ruleset. -->
@@ -111,6 +111,8 @@
         <Word>=</Word>
         <Word>≠</Word>
         <Word>:</Word>
+		<Word>;</Word>
+		<Word>,</Word>
         <Word>&gt;</Word>
         <Word>&lt;</Word>
     </Keywords>

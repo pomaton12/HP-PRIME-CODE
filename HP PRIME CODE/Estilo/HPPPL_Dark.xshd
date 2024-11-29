@@ -102,7 +102,7 @@
     </Rule>
 
 
-    <Keywords foreground="#FFFFFF">
+    <Keywords foreground="#D4D4D4">
         <Word>+</Word>
         <Word>-</Word>
         <Word>/</Word>
@@ -111,6 +111,8 @@
         <Word>=</Word>
         <Word>≠</Word>
         <Word>:</Word>
+		<Word>;</Word>
+		<Word>,</Word>
         <Word>&gt;</Word>
         <Word>&lt;</Word>
     </Keywords>

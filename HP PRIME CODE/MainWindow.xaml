@@ -422,7 +422,7 @@
                                                         <RowDefinition Height="*" />
                                                     </Grid.RowDefinitions>
                                                     <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
-                                                    <Border Grid.Row="1" Background="White" Margin="0 5 0 0">
+                                                    <Border Grid.Row="1" Background="{DynamicResource EditorFillColor}" Margin="0 5 26 15">
                                                         <ContentPresenter ContentSource="SelectedContent" />
                                                     </Border>
                                                 </Grid>
@@ -563,7 +563,7 @@
                         
                     </Grid>
 
-                    <Grid Grid.Column="1" Width="200" >
+                    <Grid Grid.Column="1" Width="0" >
 
                         <TabControl x:Name="tabControl2">
                             <TabControl.Resources>
