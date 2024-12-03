@@ -19,6 +19,7 @@
     <None Remove="FuentesIcon\Courier.ttf" />
     <None Remove="FuentesIcon\FiraMono-Regular.ttf" />
     <None Remove="FuentesIcon\IconHP.ttf" />
+    <None Remove="FuentesIcon\iconPrime.ttf" />
     <None Remove="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
     <None Remove="FuentesIcon\Menlo-Regular.ttf" />
     <None Remove="FuentesIcon\mono821n.TTF" />
@@ -84,6 +85,7 @@
     <Resource Include="FuentesIcon\Courier.ttf" />
     <Resource Include="FuentesIcon\FiraMono-Regular.ttf" />
     <Resource Include="FuentesIcon\IconHP.ttf" />
+    <Resource Include="FuentesIcon\iconPrime.ttf" />
     <Resource Include="FuentesIcon\Inconsolata_Condensed-Regular.ttf" />
     <Resource Include="FuentesIcon\Menlo-Regular.ttf" />
     <Resource Include="FuentesIcon\mono821n.TTF" />

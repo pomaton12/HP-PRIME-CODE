@@ -32,15 +32,15 @@ namespace HP_PRIME_CODE.Controls
 
         public static readonly DependencyProperty HeaderProperty =
     DependencyProperty.Register(
-        "Header",
-        typeof(UIElement),
+        nameof(Header),
+        typeof(object),
         typeof(TitleCustom),
         new PropertyMetadata(null));
 
-        public UIElement Header
+        public object? Header
         {
-            get { return (UIElement)GetValue(HeaderProperty); }
-            set { SetValue(HeaderProperty, value); }
+            get => GetValue(HeaderProperty);
+            set => SetValue(HeaderProperty, value);
         }
 
         public TitleCustom()

@@ -9,53 +9,61 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid Background="Transparent">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
 
             <!-- Aquí va la cabecera que puede ser personalizada desde el MainWindow -->
-            <ContentControl Grid.Row="0" Content="{Binding Header}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+            <ContentControl  Grid.Column="0" Content="{Binding Header}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
 
             <!-- Los botones de control de ventana (minimizar, maximizar, cerrar) -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Border Grid.Column="1" >
+                <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch">
 
-                <Button VerticalAlignment="Center"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="49" Height="30" ToolTip="Minimized"  Click="MinimizeWindow">
-                    <TextBlock  Text="&#xE921;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10"  />
-                </Button>
+                    <Button VerticalAlignment="Stretch"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="49"  ToolTip="Minimized"  Click="MinimizeWindow">
+                        <TextBlock  Text="&#xE921;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10"  />
+                    </Button>
 
-                <Button x:Name="MaximizeButton" BorderThickness="0" Background="Transparent" Click="MaximizeWindow" VerticalAlignment="Center" HorizontalAlignment="Right" Width="49" Height="30" >
-                    <Button.ToolTip>
-                        <ToolTip x:Name="MaximizeToolTip" Content="Maximized" />
-                    </Button.ToolTip>
+                    <Button x:Name="MaximizeButton" BorderThickness="0" Background="Transparent" Click="MaximizeWindow" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="49"  >
+                        <Button.ToolTip>
+                            <ToolTip x:Name="MaximizeToolTip" Content="Maximized" />
+                        </Button.ToolTip>
 
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="{TemplateBinding Background}">
-                                <ContentPresenter x:Name="contentPresenter" Content="{TemplateBinding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
-                                    <Setter TargetName="contentPresenter" Property="Content">
-                                        <Setter.Value>
-                                            <TextBlock Text="&#xE923;" FontFamily="{StaticResource SegoeFluentIcons}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="{DynamicResource ColorMouseMouseOverTitle}" />
-                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                    <TextBlock Text="&#xE922;" FontFamily="{StaticResource SegoeFluentIcons}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
-                </Button>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}">
+                                    <ContentPresenter x:Name="contentPresenter" Content="{TemplateBinding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                                        <Setter TargetName="contentPresenter" Property="Content">
+                                            <Setter.Value>
+                                                <TextBlock Text="&#xE923;" FontFamily="{StaticResource SegoeFluentIcons}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource ColorMouseMouseOverTitle}" />
+                                        <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource EditorSelectionColor}" />
+                                        <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <TextBlock Text="&#xE922;" FontFamily="{StaticResource SegoeFluentIcons}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
+                    </Button>
 
-                <Button VerticalAlignment="Center"  Style="{StaticResource StyleCloseButton}"  HorizontalAlignment="Right" Width="50" Height="30" Click="CloseWindow" ToolTip="Closed">
-                    <TextBlock  Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10"  />
-                </Button>
-            </StackPanel>
+                    <Button VerticalAlignment="Stretch"  Style="{StaticResource StyleCloseButton}"  HorizontalAlignment="Right" Width="50"  Click="CloseWindow" ToolTip="Closed">
+                        <TextBlock  Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Stretch" HorizontalAlignment="Center" FontSize="10"  />
+                    </Button>
+                </StackPanel>
+
+            </Border>
+        
         </Grid>
     </Grid>
 </UserControl>

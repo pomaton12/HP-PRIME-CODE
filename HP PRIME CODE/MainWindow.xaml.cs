@@ -363,7 +363,7 @@ namespace HP_PRIME_CODE
 
             // Calcula la posición de la línea actual en el minimapa
             string[] lines = _editor.Text.Split('\n');
-            double top = (double)currentLineIndex / lines.Length * (_minimap.Height - 46);
+            double top = (double)currentLineIndex / lines.Length * (_minimap.Height-37);
             double ThemeSelected = Properties.Settings.Default.TemaSettings;
             // Define el color del rectángulo en el minimapa según el tema
             SolidColorBrush minimapBrush = ThemeSelected == 0
@@ -866,9 +866,6 @@ namespace HP_PRIME_CODE
         // Declara una ObservableCollection para almacenar las pestañas
         public ObservableCollection<TabItem> Tabs { get; set; } = new ObservableCollection<TabItem>();
 
-        // Para boton menu cambiar stylo segun boton
-        public Button botonSeleccionado = null; // Para Menu botones seleccioandos o no
-
         // Para cambio de thema y Idioma
         //private double ThemeSelected = Properties.Settings.Default.TemaSettings; // 0 = ligth   1 = Dark   // O defaulti install
         private double IdiomaSelected = Properties.Settings.Default.IdiomaSettings; // 0 = esp   1 = ingles  // O defaulti install
@@ -912,15 +909,20 @@ namespace HP_PRIME_CODE
             ComboBoxIdioma.SelectedIndex = (int)IdiomaSelected;
             //ComboBox1.SelectedIndex = (int)ThemeSelected;
 
+            // Obtener el valor guardado como double
             double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
-            if (ThemeSelected == 0)
+            // Convertir el valor a int antes de asignarlo al ComboBox
+            int selectedIndex = Convert.ToInt32(ThemeSelected);
+
+            // Validar que el índice sea válido antes de asignarlo
+            if (selectedIndex >= 0 && selectedIndex < ComboBoxTema.Items.Count)
             {
-                ThemeVigaUIpanel.Text = "\uE706";
+                ComboBoxTema.SelectedIndex = selectedIndex;
             }
-            else if (ThemeSelected == 1)
+            else
             {
-                ThemeVigaUIpanel.Text = "\uE708";
+                ComboBoxTema.SelectedIndex = 0; // Por defecto, selecciona el primer elemento
             }
 
 
@@ -1044,52 +1046,66 @@ namespace HP_PRIME_CODE
         }
 
 
-        //<!--Menu Buttons Inicio  -->
-        private void BotonMenu_Inicio(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        //<!-- Toogle para mostrar Barra de Herramientas  -->
+        private void buttonToogleHerraCheck(object sender, RoutedEventArgs e)
         {
-            Button boton = (Button)sender;
-
-            // Restaurar el color del botón previamente seleccionado
-            if (botonSeleccionado != null)
+            // Cambia el texto del TextBlock al activarse (Checked)
+            if (sender is ToggleButton toggleButton)
             {
-                botonSeleccionado.Style = (Style)FindResource("tabButton");
+                
+                toggleButton.ToolTip = "Mostrar Barra de Herramientas";
+                // Busca el TextBlock dentro del contenido del ToggleButton
+                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
+                {
+                    textBlock.Text = "\ue900"; // Nuevo icono o texto (Ejemplo: cambiar el icono)
+                }
+
+                BH_Inicio.Visibility = Visibility.Collapsed;
             }
+        }
 
-            // Cambiar el color del botón seleccionado actualmente
-            boton.Style = (Style)FindResource("tabButton1");
-            // Actualizar el botón seleccionado
-            botonSeleccionado = boton;
+        private void buttonToogleHerraUncheck(object sender, RoutedEventArgs e)
+        {
+            // Cambia el texto del TextBlock al desactivarse (Unchecked)
+            if (sender is ToggleButton toggleButton)
+            {
+                toggleButton.ToolTip = "Ocultar Barra de Herramientas";
+                // Busca el TextBlock dentro del contenido del ToggleButton
+                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
+                {
+                    textBlock.Text = "\ue901"; // Vuelve al texto original
+                }
+                BH_Inicio.Visibility = Visibility.Visible;
+            }
+        }
 
-            BH_Inicio.Visibility = Visibility.Visible;
-            BH_Vista.Visibility = Visibility.Collapsed;
+        //=========================================================================================
+        //
+        //                            PARA CONFIGURACION DE EDITOR
+        //
+        //=========================================================================================
+
+        private void BotonMenu_ConfigOpen(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        {
+
+            Panel_ConfigHP.Visibility = Visibility.Visible;
+
+        }
+        private void BotonMenu_ConfigClose(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        {
+
+            Panel_ConfigHP.Visibility = Visibility.Collapsed;
 
         }
 
-        //<!--Menu Buttons Inicio  -->
-        private void BotonMenu_Vista(object sender, RoutedEventArgs e)  // BOTON AUTOR
-        {
-            Button boton = (Button)sender;
 
-            // Restaurar el color del botón previamente seleccionado
-            if (botonSeleccionado != null)
-            {
-                botonSeleccionado.Style = (Style)FindResource("tabButton");
-            }
 
-            // Cambiar el color del botón seleccionado actualmente
-            boton.Style = (Style)FindResource("tabButton1");
-            // Actualizar el botón seleccionado
-            botonSeleccionado = boton;
-
-            BH_Inicio.Visibility = Visibility.Collapsed;
-            BH_Vista.Visibility = Visibility.Visible;
-        }
 
 
 
         //=========================================================================================
         //
-        //                            PARA BARRA DE HERRAMIENTAS INICIO
+        //                            PARA BARRA DE HERRAMIENTAS 
         //
         //=========================================================================================
 
@@ -1361,13 +1377,29 @@ namespace HP_PRIME_CODE
                             Height = 2,
                         };
 
-                        Canvas.SetTop(rect, (double)i / lines.Length * (minimap.Height - 46));
+                        Canvas.SetTop(rect, (double)i / lines.Length * (minimap.Height-37));
                         minimap.Children.Add(rect);
                     }
                 }
             }
         }
 
+        //Actualizar altura del minimapa en tiempo real
+        private void Editor_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Obtén el editor que generó el evento
+            TextEditor editor = sender as TextEditor;
+
+            if (editor != null)
+            {
+                // Encuentra el minimapa correspondiente (si es único)
+                if (minimap != null)
+                {
+                    // Ajusta la altura del minimapa al nuevo tamaño del editor
+                    minimap.Height = editor.ActualHeight;
+                }
+            }
+        }
 
 
         // redibuja el canvas cada vez que se maximiza o minimiza
@@ -1397,9 +1429,6 @@ namespace HP_PRIME_CODE
             TextEditor editor = GetActiveTextEditor();
             if (editor != null)
             {
-
-
-                minimap.Height = editor.ActualHeight;
                 UpdateMinimap(_lastSelectedWord);
                 AddHighlightRenderer(editor);
             }
@@ -2633,9 +2662,11 @@ namespace HP_PRIME_CODE
 
             //============================================================
 
-            editor.MouseLeftButtonDown += codeEditor1_MouseLeftButtonDown;
+            editor.MouseLeftButtonDown += codeEditor1_MouseLeftButtonDown; //Copiar selecion con arrastre presionado
             editor.KeyDown += CodeEditor1_KeyDown;
 
+            //============================================================
+            //[1.1] Esto es PARA MENU EN EDITOR copiar pegar cortar etc.
             // Configura el ContextMenu
             editor.ContextMenu = new ContextMenu();
             editor.ContextMenu.Width = 250;
@@ -2668,6 +2699,10 @@ namespace HP_PRIME_CODE
             editor.ContextMenu.Items.Add(menuItemDelete);
             editor.ContextMenu.Items.Add(new Separator());
             editor.ContextMenu.Items.Add(menuItemSelectAll);
+
+            //===============================================
+            // [1.2] Creamos Minimapa 
+
 
             //==========================================
             //[2] Panel hoover al pasar mouse encima de Comandos
@@ -2750,6 +2785,10 @@ namespace HP_PRIME_CODE
             // [3] Agregar el evento TextChanged para condicion de modificacion y mostrar **
             editor.TextChanged += TextEditor_TextChanged;
 
+            //==========================================
+            // [4] Agregar el evento actualizar minimapa altura
+            editor.SizeChanged += Editor_SizeChanged;
+
         }
 
         // Método para buscar el ScrollViewer dentro de un elemento visual
@@ -2793,8 +2832,6 @@ namespace HP_PRIME_CODE
             // Actualizar el minimapa después de que se haya completado el layout
             Dispatcher.InvokeAsync(() =>
             {
-                // Establecer la altura del minimapa
-                minimap.Height = newEditor.ActualHeight;
 
                 // Redibujar el minimapa si es necesario
                 if (_lastSelectedWord != null)
@@ -2992,8 +3029,6 @@ namespace HP_PRIME_CODE
             // Actualizar el minimapa después de que se haya completado el layout
             Dispatcher.InvokeAsync(() =>
             {
-                // Establecer la altura del minimapa
-                minimap.Height = newEditor.ActualHeight;
 
                 // Redibujar el minimapa si es necesario
                 if (_lastSelectedWord != null)
@@ -3171,46 +3206,61 @@ namespace HP_PRIME_CODE
 
                 ((App)Application.Current).ChangeLanguage(FindResource("en_En").ToString());
             }
-            // Y así sucesivamente para los demás elementos...
+            // Fuerza un redibujado de la ventana para reflejar los cambios
+            var currentWindow = Window.GetWindow(this);
+            if (currentWindow != null)
+            {
+                currentWindow.DataContext = null;
+                currentWindow.DataContext = this;
+            }
         }
 
         //Selecion de Thema
-        private void Boton_ThemeLight(object sender, RoutedEventArgs e)
+        private void ComboBoxTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ThemeVigaUIpanel.Text = "\uE706";
+            var comboBox = sender as ComboBox;
 
-            // Cierra el Popup
-            CustomDropdownPopup.IsOpen = false;
-            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Light);
+            if (comboBox != null)
+            {
+                // Obtener el índice del elemento seleccionado
+                int selectedIndex = comboBox.SelectedIndex;
 
-            Properties.Settings.Default.TemaSettings = 0; //Almacena valor en Settings
-            //Properties.Settings.Default.TransparenciaSettings = 0; //Almacena valor en Settings
-            Properties.Settings.Default.Save();
+                // Realizar acciones basadas en el índice
+                switch (selectedIndex)
+                {
+                    case 0:
+                        Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Light);
 
-            ((App)Application.Current).ChangeTheme("Light");
+                        Properties.Settings.Default.TemaSettings = 0; //Almacena valor en Settings
+                                                                      //Properties.Settings.Default.TransparenciaSettings = 0; //Almacena valor en Settings
+                        Properties.Settings.Default.Save();
 
-            //UpdateButtons();
-            //Repintado de editor manualmente
-            UpdateEditorsTheme();
+                        ((App)Application.Current).ChangeTheme("Light");
+
+                        //UpdateButtons();
+                        //Repintado de editor manualmente
+                        UpdateEditorsTheme();
+                        break;
+                    case 1:
+                        Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Dark);
+
+                        Properties.Settings.Default.TemaSettings = 1; //Almacena valor en Settings
+                                                                      //Properties.Settings.Default.TransparenciaSettings = 1; //Almacena valor en Settings
+                        Properties.Settings.Default.Save();
+
+
+                        ((App)Application.Current).ChangeTheme("Dark");
+
+                        //UpdateButtons();
+                        UpdateEditorsTheme();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
-        private void Boton_ThemeDark(object sender, RoutedEventArgs e)
-        {
-            ThemeVigaUIpanel.Text = "\uE708";
-            // Cierra el Popup
-            CustomDropdownPopup.IsOpen = false;
-            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 
-            Properties.Settings.Default.TemaSettings = 1; //Almacena valor en Settings
-            //Properties.Settings.Default.TransparenciaSettings = 1; //Almacena valor en Settings
-            Properties.Settings.Default.Save();
-
-
-            ((App)Application.Current).ChangeTheme("Dark");
-
-            //UpdateButtons();
-            UpdateEditorsTheme();
-        }
 
         private void UpdateEditorsTheme()
         {

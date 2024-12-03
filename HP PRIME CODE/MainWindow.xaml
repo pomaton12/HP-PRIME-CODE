@@ -10,7 +10,7 @@
         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         mc:Ignorable="d"
              
-        MinHeight="400" MinWidth="500"
+        MinHeight="400" MinWidth="650"
         Title="HP Prime Code Editor"
         Height="580" Width="920"
         ExtendsContentIntoTitleBar="True"
@@ -24,14 +24,7 @@
 
     <Window.Resources>
         <ResourceDictionary>
-            <SolidColorBrush x:Key="BorderNegro" Color="{ui:ThemeResource TextFillColorPrimary}" />
             <SolidColorBrush x:Key="BorderBlanco" Color="{DynamicResource HexCustomDefault}" />
-
-            <SolidColorBrush x:Key="ColorControlButone" Color="{DynamicResource HexCustomControlButon}" />
-
-
-            
-            
         </ResourceDictionary>
 
         
@@ -43,67 +36,196 @@
 
         <Grid   SnapsToDevicePixels="True" RenderOptions.ClearTypeHint="Enabled"  TextOptions.TextRenderingMode="Aliased" TextOptions.TextFormattingMode="Ideal">
             <Grid.RowDefinitions>
-                <RowDefinition Height="30"/>
+                <RowDefinition Height="35"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="22"  />                
             </Grid.RowDefinitions>
 
-            <local1:TitleCustom Grid.Row="0" Height="40">
+            <local1:TitleCustom Grid.Row="0" Height="35" >
                 <local1:TitleCustom.Header>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                        <Grid Margin="10 0 0 0" Grid.Row="1" HorizontalAlignment="Left">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+
+                    <Grid Margin="10 0 0 0"  HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
 
-                            <svgc:SvgViewbox  Source="/Imagen/Hp_Prime_ico.svg" Width="22" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 5 0 0" />
+                        <svgc:SvgViewbox  Source="/Imagen/Hp_Prime_ico.svg" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 5 0 0" />
 
-                            <Border Grid.Column="1" Background="Transparent" Margin="0 4 0 0" >
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-                                    <Button  Height="30" Style="{StaticResource tabButton}"   HorizontalAlignment="Center" Click="BotonMenu_Archivo">
-                                        <StackPanel>
-                                            <TextBlock FontSize="13" Text="{DynamicResource Archivo}" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button  Height="30"  Style="{StaticResource tabButton}"  HorizontalAlignment="Center" Click="BotonMenu_Inicio" >
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Inicio}" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Height="30" Style="{StaticResource tabButton}"  HorizontalAlignment="Center" >
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Insertar}" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Height="30" Style="{StaticResource tabButton}"  HorizontalAlignment="Center" >
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Dibujar}"  />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Height="30" Style="{StaticResource tabButton}"  HorizontalAlignment="Center" >
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Revisar}"  />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Height="30" Style="{StaticResource tabButton}"  HorizontalAlignment="Center" Click="BotonMenu_Vista">
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Vista}"  />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Height="30" Style="{StaticResource tabButton}"  HorizontalAlignment="Center" >
-                                        <StackPanel>
-                                            <TextBlock FontSize="13"  Text="{DynamicResource Ayuda}"  />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </Border>
+                        <Border Grid.Column="1" Background="Transparent" Margin="0 0 0 0" >
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Menu ItemContainerStyle="{StaticResource UiMenuItem}">
+                                    <MenuItem Header="{DynamicResource textArchivo}"  >
+                                        <MenuItem Header="{DynamicResource textNuevo}"  InputGestureText="Ctrl+N"/>
+                                        <MenuItem Header="{DynamicResource textAbrir}"  InputGestureText="Ctrl+O">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoFolder}" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textGuardar}"  InputGestureText="Ctrl+S">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoSaveAs}" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textGuardarComo}"  InputGestureText="Ctrl+Mayús+S"/>
+                                        <MenuItem Header="{DynamicResource textGuardarTodo}"  InputGestureText="Ctrl+Alt+S">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoSave}" Width="16" Stretch="Fill"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="{DynamicResource textAutoguardado}"  InputGestureText="Ctrl+S">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xf7bb;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textImprimir}"  InputGestureText="Ctrl+P">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe749;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="{DynamicResource textSalir}"  InputGestureText="Alt+F4"/>
 
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textEditar}">
+                                        <MenuItem Header="{DynamicResource textDeshacer}"  InputGestureText="Ctrl+Z">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xE7A7;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textRehacer}"  InputGestureText="Ctrl+Y">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xE7A6;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="{DynamicResource textCortar}"  InputGestureText="Ctrl+X">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoCut}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textCopiar}"  InputGestureText="Ctrl+C">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoCopy}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textPegar}"  InputGestureText="Ctrl+V">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoPaste}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textEliminar}"  InputGestureText="Supr">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe894;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="{DynamicResource textBuscar}"  InputGestureText="Ctrl+B">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe721;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textReemplazar}"  InputGestureText="Ctrl+R">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoReplace}" Width="17" Height="17"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="{DynamicResource textSeleccionarTodo}"  InputGestureText="Ctrl+A">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe8a9;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="{DynamicResource textSeleccion}" />
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textInsertar}">
+                                        <MenuItem Header="Funcion"  >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe943;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorW11Verde}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Symbolo"  >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xf6ba;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Ecuación"  >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe94b;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorW11Morado}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textDibujar}">
+                                        <MenuItem Header="Acerca de"  >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xE7A6;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textDepurar}">
+                                        <MenuItem Header="Iniciar Depuracion"  InputGestureText="Ctrl+F5">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xedda;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorW11Verde}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textCompilar}">
+                                        <MenuItem Header="Enviar a Emulador"  InputGestureText="F5">
+                                            <MenuItem.Icon>
+                                                <svgc:SvgViewbox  Source="/Imagen/Inicio/send_light.svg" Width="16" Height="16"   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Configuracion de Emulador" >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                    <MenuItem Header="{DynamicResource textAyuda}">
+                                        <MenuItem Header="Acerca de"  InputGestureText="F1">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xE7A6;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                </Menu>
 
+                            </StackPanel>
+                        </Border>
+                        <Grid Grid.Column="2"  HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+
+                                <ToggleButton 
+                                    Style="{StaticResource menuButtonToogle}"
+                                    Padding="0"
+                                    Width="30"
+                                    Height="30"
+                                    BorderThickness="0"
+                                    Checked="buttonToogleHerraCheck"
+                                    Unchecked="buttonToogleHerraUncheck"
+                                    HorizontalAlignment="Right"
+                                    ToolTip="Mostrar Barra de Herramientas">
+                                    <TextBlock 
+                                    Text="&#xe901;"
+                                    FontFamily="{StaticResource iconPrime}"
+                                    Foreground="{DynamicResource ColorIconNormal}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="16" />
+                                </ToggleButton>
+
+                                <Button VerticalAlignment="Center"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Configuración" Click="BotonMenu_ConfigOpen" >
+                                    <TextBlock  Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"  />
+                                </Button>
+                            </StackPanel>
                         </Grid>
-                    </StackPanel>
+
+
+                    </Grid>
+
                 </local1:TitleCustom.Header>
             </local1:TitleCustom>
 
@@ -116,12 +238,15 @@
 
                 <!-- Barra de Herramientas -->
 
-                <Border  Height="47" x:Name="BarraHerramientas2" Visibility="Visible" Grid.Row="0" Margin="0 5 0 10" CornerRadius="0"   Background="{StaticResource BorderBlanco}" BorderThickness="1" BorderBrush="{DynamicResource ColorLineTools}" >
-
+                <Border Grid.Row="0" x:Name="BH_Inicio" Height="47"  Visibility="Visible"  Margin="10 0 10 5" CornerRadius="5"   Background="{StaticResource BorderBlanco}" BorderThickness="0" BorderBrush="{DynamicResource ColorLineTools}" >
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="8" RenderingBias="Quality" Direction="270" ShadowDepth="1" Opacity="0.15"/>
+                    </Border.Effect>
+                    
                     <Grid Margin="5 0" >
                         
                         <!-- Barra de Inicio -->
-                        <StackPanel x:Name="BH_Inicio" Visibility="Visible" Margin="0 0 0 0" Orientation="Horizontal"  VerticalAlignment="Top" Height="47" >
+                        <StackPanel   Margin="0 0 0 0" Orientation="Horizontal"  VerticalAlignment="Top" Height="47" >
 
                             <Button  x:Name="UndoButton" Style="{StaticResource menuButtonVigaVerti}" Width="35" Height="35" ToolTip="Deshacer (Ctrl + Z)" Click="UndoButton_Click">
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -171,7 +296,7 @@
                             <Button x:Name="cbbtn_print" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Imprimir" Click="PrintButton_Click"  >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                    <Image Source="{DynamicResource IconoPrint}" Width="18"  Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Image Source="{DynamicResource IconoPrint}" Width="19"  Height="19" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                                 </StackPanel>
                             </Button>
@@ -257,88 +382,9 @@
                             </Button>
 
 
-                            
-                            
 
 
-                        </StackPanel>
 
-                        <!-- Barra de Vista -->
-                        <StackPanel x:Name="BH_Vista" Visibility="Collapsed" Margin="0 0 0 0" Orientation="Horizontal"  VerticalAlignment="Top" Height="47" >
-
-                            <ComboBox Margin="10,4,0,0" Width="180" Height="35" Name="ComboBoxFuente"  SelectionChanged="ComboBoxFont_SelectionChanged" HorizontalAlignment="Stretch" VerticalAlignment="Top"   ToolTip="Fuente de Texto">
-                                <ComboBoxItem Content="Cascadia Mono Regular" ></ComboBoxItem>
-                                <ComboBoxItem Content="Cascadia Mono Light" ></ComboBoxItem>
-                                <ComboBoxItem Content="Cascadia Mono ExtraLight" ></ComboBoxItem>
-                                <ComboBoxItem Content="Consolas"></ComboBoxItem>
-                                <ComboBoxItem Content="Courier New"></ComboBoxItem>
-                                <ComboBoxItem Content="Fira Mono"></ComboBoxItem>
-                                <ComboBoxItem Content="Inconsolata"></ComboBoxItem>
-                                <ComboBoxItem Content="Menlo"></ComboBoxItem>
-                                <ComboBoxItem Content="Monospac 821"></ComboBoxItem>
-                                <ComboBoxItem Content="Prime Sans Mono"></ComboBoxItem>
-                            </ComboBox>
-
-                            <ComboBox Margin="10,4,0,0" Width="70" Height="35"  Name="ComboBoxFontSize" SelectionChanged="ComboBoxFontSize_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top"  ToolTip="Tamaño de Texto">
-                                <ComboBoxItem Content="6" ></ComboBoxItem>
-                                <ComboBoxItem Content="7" ></ComboBoxItem>
-                                <ComboBoxItem Content="8" ></ComboBoxItem>
-                                <ComboBoxItem Content="9" ></ComboBoxItem>
-                                <ComboBoxItem Content="10" ></ComboBoxItem>
-                                <ComboBoxItem Content="11" ></ComboBoxItem>
-                                <ComboBoxItem Content="12" ></ComboBoxItem>
-                                <ComboBoxItem Content="13" ></ComboBoxItem>
-                                <ComboBoxItem Content="14" ></ComboBoxItem>
-                                <ComboBoxItem Content="15" ></ComboBoxItem>
-                                <ComboBoxItem Content="16" ></ComboBoxItem>
-                                <ComboBoxItem Content="17" ></ComboBoxItem>
-                                <ComboBoxItem Content="18" ></ComboBoxItem>
-                                <ComboBoxItem Content="19" ></ComboBoxItem>
-                                <ComboBoxItem Content="20" ></ComboBoxItem>
-                                <ComboBoxItem Content="21" ></ComboBoxItem>
-                                <ComboBoxItem Content="22" ></ComboBoxItem>
-                                <ComboBoxItem Content="23" ></ComboBoxItem>
-                                <ComboBoxItem Content="24" ></ComboBoxItem>
-                            </ComboBox>
-
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
-
-                            <ComboBox Margin="10,4,0,0" Width="100" Height="35" Name="ComboBoxIdioma" SelectionChanged="ComboBoxIdioma_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="{DynamicResource Tool_Idioma}">
-
-                                <ComboBoxItem Content="{DynamicResource es_Es}"/>
-                                <ComboBoxItem Content="{DynamicResource en_En}"/>
-                            </ComboBox>
-
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
-
-                            <!--PARA CAMBIAR DE THEMA-->
-                            <ToggleButton x:Name="CustomDropdownButton" Style="{StaticResource menuButtonToogle}" Padding="0" Width="30" Height="30" BorderThickness="0">
-                                <TextBlock x:Name="ThemeVigaUIpanel" Text="&#xE706;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" />
-                            </ToggleButton>
-
-                            <Popup x:Name="CustomDropdownPopup" Placement="Bottom" PlacementTarget="{Binding ElementName=CustomDropdownButton}" AllowsTransparency="True" IsOpen="{Binding IsChecked, ElementName=CustomDropdownButton}" StaysOpen="False">
-                                <Border  Height="80" CornerRadius="7" BorderBrush="Transparent" BorderThickness="1" Background="{DynamicResource ColorPanelVigaUI}"  Margin="10">
-                                    <Border.Effect>
-                                        <DropShadowEffect  Direction="270" BlurRadius="13" ShadowDepth="2" Color="Black" Opacity="0.2"/>
-                                    </Border.Effect>
-                                    <StackPanel>
-                                        <Button Style="{StaticResource menuButtonVigaVerti}" Margin="5 5 5 0" Click="Boton_ThemeLight">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock  Text="&#xE706;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" HorizontalAlignment="Center" FontSize="20" Margin="5 0 5 0" />
-                                                <TextBlock  Text="Light" Foreground="{DynamicResource ColorIconNormal}" HorizontalAlignment="Center" FontSize="14" Margin="5 0 5 0"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Style="{StaticResource menuButtonVigaVerti}" Margin="5 5 5 0" Click="Boton_ThemeDark">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock  Text="&#xE708;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" HorizontalAlignment="Center" FontSize="20" Margin="5 0 5 0" />
-                                                <TextBlock  Text="Dark" Foreground="{DynamicResource ColorIconNormal}" HorizontalAlignment="Center" FontSize="14" Margin="5 0 5 0"/>
-
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </Border>
-                            </Popup>
-                            <!--==========-->
 
                         </StackPanel>
 
@@ -362,7 +408,7 @@
                         <TabControl x:Name="tabControl">
                             <TabControl.Resources>
                                 <Style TargetType="TabItem">
-                                    <Setter Property="Height" Value="30" />
+                                    <Setter Property="Height" Value="35" />
                                     <Setter Property="FontSize" Value="12" />
                                     <Setter Property="Template">
                                         <Setter.Value>
@@ -370,19 +416,25 @@
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="20" />
+                                                        <ColumnDefinition Width="24" />
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Name="Border"  Background="{DynamicResource TabControlDesactivateColor}"  Margin="2 0 0 0" CornerRadius="6 0 0 0">
+                                                    <Border Name="Border"  Background="{DynamicResource TabControlDesactivateColor}"  Margin="1 0 0 0" CornerRadius="0 0 0 0">
                                                         <ContentPresenter x:Name="ContentSite" TextBlock.Foreground="{DynamicResource ColorCustomSemiNegroG}" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2" Grid.Column="0" />
                                                     </Border>
 
-                                                    <Border Name="Border1" Grid.Column="1" Background="{DynamicResource TabControlDesactivateColor}" Margin="0 0 0 0" CornerRadius="0 6 0 0">
-                                                        <Button Name="Button" Content="x" Width="20" BorderThickness="0" 
-                                                        Foreground="Transparent" Background="Transparent"
+                                                    <Border Name="Border1" Grid.Column="1" Background="{DynamicResource TabControlDesactivateColor}" Margin="0 0 0 0" CornerRadius="0 0 0 0">
+                                                        <Button Name="Button"   
+                                                                Width="20" 
+                                                                Height="20" 
+                                                                BorderThickness="0"
+                                                                Style="{DynamicResource BotonCerrarItems}"
+                                                        Foreground="Transparent" 
                                                         Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                                         CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TabItem}}"
                                                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                                        Padding="0" />
+                                                        Padding="0" >
+                                                            <TextBlock Margin="0 0 0 0" Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="8"  />
+                                                        </Button>
                                                     </Border>
                                                 </Grid>
                                                 <ControlTemplate.Triggers>
@@ -391,8 +443,8 @@
                                                         <Setter TargetName="Border1" Property="Background" Value="{DynamicResource ColorIconBlue}" />
                                                         <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
                                                         <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
-                                                        <Setter TargetName="Button" Property="Background" Value="Transparent" />
                                                     </Trigger>
+
                                                     <MultiTrigger>
                                                         <MultiTrigger.Conditions>
                                                             <Condition Property="IsMouseOver" Value="True" />
@@ -402,7 +454,7 @@
                                                         <Setter TargetName="Border1" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
                                                         <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
                                                         <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
-                                                        <Setter TargetName="Button" Property="Background" Value="Transparent" />
+
                                                     </MultiTrigger>
 
                                                 </ControlTemplate.Triggers>
@@ -422,8 +474,8 @@
                                                         <RowDefinition Height="*" />
                                                     </Grid.RowDefinitions>
                                                     <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
-                                                    <Border Grid.Row="1" Background="{DynamicResource EditorFillColor}" Margin="0 5 26 15">
-                                                        <ContentPresenter ContentSource="SelectedContent" />
+                                                    <Border  Grid.Row="1"  Background="red"  Margin="0 5 26 15">
+                                                        <ContentPresenter x:Name="Panelmini" ContentSource="SelectedContent" />
                                                     </Border>
                                                 </Grid>
                                             </ControlTemplate>
@@ -434,10 +486,13 @@
                         
                         </TabControl>
                     
-                        <Canvas Margin="0 50 15 31"  
-                            x:Name="minimap"  Grid.Column="1" 
-                            Width="5" 
+                        <Canvas Margin="0 0 15 0" 
+                                
+                            x:Name="minimap"  
+                            Width="5"
+                            
                             IsHitTestVisible="False"
+                            VerticalAlignment="Bottom"
                             HorizontalAlignment="Right"/>
                           
 
@@ -559,87 +614,243 @@
                                 RenderOptions.ClearTypeHint="Enabled"
                                 FontSize="12"/>
                         </Border>
-                                           
-                        
+
+                        <Border Name="LabelColumFile" Margin="0 0 0 0" Width="300" Height="16" CornerRadius="0" BorderThickness="0"  Background="{DynamicResource ScrollBarTrackFillPointerOver}"  Padding="0" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+
+                            <TextBlock 
+                                Text="Lin: 30   Col: 40"
+                                Foreground="{DynamicResource ColorCustomSemiNegroG}"
+                                HorizontalAlignment="Left" 
+                                VerticalAlignment="Center" 
+                                TextAlignment="Justify" 
+                                FontSize="11"
+                                Margin="100 0 0 0"/>
+                        </Border>
+
+
+
                     </Grid>
 
-                    <Grid Grid.Column="1" Width="0" >
+                    <Grid Grid.Column="1" x:Name="Panel_ConfigHP"  Width="335" Visibility="Visible">
 
-                        <TabControl x:Name="tabControl2">
-                            <TabControl.Resources>
-                                <Style TargetType="TabItem">
-                                    <Setter Property="Height" Value="30" />
-                                    <Setter Property="FontSize" Value="12" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="TabItem">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="20" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <Border Name="Border"  Background="{DynamicResource TabControlDesactivateColor}"  Margin="2 0 0 0" CornerRadius="6 0 0 0">
-                                                        <ContentPresenter x:Name="ContentSite" TextBlock.Foreground="{DynamicResource ColorCustomSemiNegroG}" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2" Grid.Column="0" />
-                                                    </Border>
+                        <Border 
+                            Margin="5" 
+                            CornerRadius="7" 
+                            BorderThickness="1" 
+                            BorderBrush="{DynamicResource ColorContextBorde}">
 
-                                                    <Border Name="Border1" Grid.Column="1" Background="{DynamicResource TabControlDesactivateColor}" Margin="0 0 0 0" CornerRadius="0 6 0 0">
-                                                        <Button Name="Button" Content="x" Width="20" BorderThickness="0" 
-                                                        Foreground="Transparent" Background="Transparent"
-                                                        Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                                                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TabItem}}"
-                                                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                                        Padding="0" />
-                                                    </Border>
-                                                </Grid>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource ColorIconBlue}" />
-                                                        <Setter TargetName="Border1" Property="Background" Value="{DynamicResource ColorIconBlue}" />
-                                                        <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
-                                                        <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
-                                                        <Setter TargetName="Button" Property="Background" Value="Transparent" />
-                                                    </Trigger>
-                                                    <MultiTrigger>
-                                                        <MultiTrigger.Conditions>
-                                                            <Condition Property="IsMouseOver" Value="True" />
-                                                            <Condition Property="IsSelected" Value="False" />
-                                                        </MultiTrigger.Conditions>
-                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
-                                                        <Setter TargetName="Border1" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
-                                                        <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
-                                                        <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
-                                                        <Setter TargetName="Button" Property="Background" Value="Transparent" />
-                                                    </MultiTrigger>
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" BlurRadius="50" RenderingBias="Quality" Direction="270" ShadowDepth="0" Opacity="0.3"/>
+                            </Border.Effect>
 
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TabControl.Resources>
-                            <TabControl.Style>
-                                <Style TargetType="TabControl">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="TabControl">
-                                                <Grid Background="{DynamicResource EditorFillColor}">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="*" />
-                                                    </Grid.RowDefinitions>
-                                                    <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
-                                                    <Border Grid.Row="1" Background="White" Margin="0 5 0 0">
-                                                        <ContentPresenter ContentSource="SelectedContent" />
-                                                    </Border>
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TabControl.Style>
+                            <Grid >
 
-                        </TabControl>
+                                <Border CornerRadius="7" Background="{DynamicResource ColorCustomTheme}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
 
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="*"/>
+
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0">
+
+                                            <Grid.ColumnDefinitions>
+
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="15 0 0 0" Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"  />
+
+
+                                                <TextBlock 
+                                                        Grid.Column="0"
+                                                        FontSize="13"
+                                                        Margin="15 0 0 0"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center"
+                                                        FontFamily="Segoe UI"
+                                                        Text="{DynamicResource textConfiguracion}"/>   
+                                            </StackPanel>
+
+
+                                            <Button 
+                                                Height="30"
+                                                Width="40"
+                                                Grid.Column="1"
+                                                Click="BotonMenu_ConfigClose"
+                                                Style="{StaticResource DesgloseButtonHP}"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top">
+
+                                                <TextBlock  Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Stretch" HorizontalAlignment="Center" FontSize="10"  />
+                                            </Button>
+                                        </Grid>
+
+                                        <ui:DynamicScrollViewer 
+                                            Grid.Row="1"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalScrollBarVisibility="Visible"
+                                            HorizontalAlignment="Stretch">
+
+                                            <StackPanel Orientation="Vertical" Margin="15 15 15 15">
+                                                <TextBlock 
+                                                        Grid.Column="0"
+                                                        FontSize="25"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Left"
+                                                        FontFamily="Segoe UI bold"
+                                                        Text="{DynamicResource textConfiguracion}"/>
+                                                
+                                                <!--PARA CAMBIAR DE THEMA-->
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="0 15 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textApariencia}"/>
+
+                                                <Button Height="50" Margin="0 15 0 0" HorizontalAlignment="Stretch" >
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                        <TextBlock  Text="&#xE790;" Margin="15 0 0 0" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16"  />
+                                                        <TextBlock  Text="{DynamicResource textTema}" 
+                                                                    Margin="15 0 0 0"  VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="14"  />
+
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Familia-->
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="40 15 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textIdioma}"/>
+
+                                                <ComboBox Margin="40,10,0,10" Width="180"  Name="ComboBoxIdioma" SelectionChanged="ComboBoxIdioma_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="{DynamicResource Tool_Idioma}">
+
+                                                    <ComboBoxItem Content="{DynamicResource es_Es}"/>
+                                                    <ComboBoxItem Content="{DynamicResource en_En}"/>
+                                                </ComboBox>
+
+                                                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="0 " />
+
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="40 10 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textColor}"/>
+                                                
+                                                <ComboBox Margin="40,10,0,10" Width="180"  Name="ComboBoxTema"  SelectionChanged="ComboBoxTheme_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top"   ToolTip="Fuente de Texto">
+                                                    <ComboBoxItem Content="{DynamicResource textClaro}" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="{DynamicResource textOscuro}" ></ComboBoxItem>
+                                                </ComboBox>
+                                                
+                                                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="0 " />
+
+
+                                                <!--PARA CAMBIAR FUENTE-->
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="0 15 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textFormato}"/>
+
+                                                <Button Height="50" Margin="0 15 0 0" HorizontalAlignment="Stretch" >
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                        <TextBlock  Text="&#xE185;" Margin="15 0 0 0" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16"  />
+                                                        <TextBlock  Text="{DynamicResource textFuente}" 
+                                                                    Margin="15 0 0 0"  VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="14"  />
+
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <!-- Familia-->
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="40 15 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textFamilia}"/>
+
+                                                <ComboBox Margin="40,10,0,10" Width="180"  Name="ComboBoxFuente"  SelectionChanged="ComboBoxFont_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top"   ToolTip="Fuente de Texto">
+                                                    <ComboBoxItem Content="Cascadia Mono Regular" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="Cascadia Mono Light" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="Cascadia Mono ExtraLight" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="Consolas"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Courier New"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Fira Mono"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Inconsolata"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Menlo"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Monospac 821"></ComboBoxItem>
+                                                    <ComboBoxItem Content="Prime Sans Mono"></ComboBoxItem>
+                                                </ComboBox>
+                                                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="0 " />
+
+                                                <!-- Tamaño-->
+                                                <TextBlock 
+                                                    Grid.Column="0"
+                                                    FontSize="14"
+                                                    Margin="40 10 0 0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    FontFamily="Segoe UI"
+                                                    Text="{DynamicResource textTamaño}"/>
+
+                                                <ComboBox Margin="40,10,0,0" Width="70"   Name="ComboBoxFontSize" SelectionChanged="ComboBoxFontSize_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top"  ToolTip="Tamaño de Texto">
+                                                    <ComboBoxItem Content="6" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="7" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="8" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="9" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="10" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="11" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="12" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="13" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="14" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="15" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="16" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="17" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="18" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="19" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="20" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="21" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="22" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="23" ></ComboBoxItem>
+                                                    <ComboBoxItem Content="24" ></ComboBoxItem>
+                                                </ComboBox>
+
+
+                                            </StackPanel>
+                                            
+                                            
+                                        </ui:DynamicScrollViewer>
+                  
+                                        
+                                    </Grid>
+                                    
+                                </Border>
+
+
+                            </Grid>
+                            
+                        </Border>
+  
 
                     </Grid>
 
@@ -651,27 +862,31 @@
 
             </Grid>
 
+            <Border Grid.Row="2" BorderBrush="{DynamicResource ColorContextBorde}" BorderThickness="0 1 0 0">
+                <Grid   >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="2" Background="{DynamicResource ColorCustomTheme}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
 
 
-                <Border Grid.Column="3">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock  Text="&#xE900;" Margin="5 0" FontFamily="{StaticResource IconHP}" Foreground="Black"  HorizontalAlignment="Left" FontSize="14" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal">
 
-                        <TextBlock Text="HP Prime Language" FontSize="12" VerticalAlignment="Center" Foreground="Black"/>
+                        <TextBlock  Text="&#xE900;" Margin="5 0" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource PanelHooverTextColor}"  HorizontalAlignment="Left" FontSize="14" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="HP Prime Language" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource PanelHooverTextColor}"/>
                     </StackPanel>
-                    
-                </Border>
+                </Grid>
+            </Border>
 
-            </Grid>
+ 
+
+
+            
 
         </Grid>
 

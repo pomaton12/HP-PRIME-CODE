@@ -97,10 +97,12 @@
     <!-- COLORES DE WINDOWS 11 -->
     <Color x:Key="HexCustomW11Red">#FF5555</Color>
     <Color x:Key="HexCustomW11Verde">#73DD83</Color>
+    <Color x:Key="HexCustomW11Morado">blueviolet</Color>
 
     <SolidColorBrush x:Key="ColorW11Red" Color="{DynamicResource  HexCustomW11Red}" />
     <SolidColorBrush x:Key="ColorW11Verde" Color="{DynamicResource  HexCustomW11Verde}" />
-
+    <SolidColorBrush x:Key="ColorW11Morado" Color="{DynamicResource  HexCustomW11Verde}" />
+    
     <!-- PARA TOOLTIP -->
     <Color x:Key="HexCustomToolTip">#2C2E30</Color>
     <SolidColorBrush x:Key="ColorToolTip" Color="{DynamicResource  HexCustomToolTip}" />
@@ -172,5 +174,16 @@
     
     <SolidColorBrush x:Key="PanelHooverColor" Color="{StaticResource PanelHooverColorDefault}" />
     <SolidColorBrush x:Key="PanelHooverTextColor" Color="{StaticResource PanelHooverTextColorDefault}" />
+
+    <!-- Para Barra de Menus  -->
+    <Color x:Key="HexPanelMenuFillColor">#2C2C2C</Color>
+    <Color x:Key="HexPanelMenuSelectColor">#383838</Color>
+    <Color x:Key="HexPanelMenuBordeColor">#202020</Color>
+    <Color x:Key="HexPanelMenuTextColor">#A5A5A5</Color>
+
+    <SolidColorBrush x:Key="PanelMenuFillColor" Color="{StaticResource HexPanelMenuFillColor}" />
+    <SolidColorBrush x:Key="PanelMenuSelectColor" Color="{StaticResource HexPanelMenuSelectColor}" />
+    <SolidColorBrush x:Key="PanelMenuBordeColor" Color="{StaticResource HexPanelMenuBordeColor}" />
+    <SolidColorBrush x:Key="PanelMenuTextColor" Color="{StaticResource HexPanelMenuTextColor}" />
 
 </ResourceDictionary>

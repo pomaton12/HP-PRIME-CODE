@@ -3,20 +3,55 @@
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <!--HOME TEXT-->
-    <system:String x:Key="Archivo">Archivo</system:String>
-    <system:String x:Key="Inicio">Inicio</system:String>
-    <system:String x:Key="Insertar">Insertar</system:String>
-    <system:String x:Key="Dibujar">Dibujar</system:String>
-    <system:String x:Key="Revisar">Revisar</system:String>
-    <system:String x:Key="Vista">Vista</system:String>
-    <system:String x:Key="Ayuda">Ayuda</system:String>
+    <system:String x:Key="textArchivo">Archivo</system:String>
+    <system:String x:Key="textEditar">Editar</system:String>
+    <system:String x:Key="textInsertar">Insertar</system:String>
+    <system:String x:Key="textDibujar">Dibujar</system:String>
+    <system:String x:Key="textDepurar">Depurar</system:String>
+    <system:String x:Key="textCompilar">Compilar</system:String>
+    <system:String x:Key="textAyuda">Ayuda</system:String>
+
+    <!--Text Item Archivo-->
+    <system:String x:Key="textNuevo">Nuevo</system:String>
+    <system:String x:Key="textAbrir">Editar</system:String>
+    <system:String x:Key="textGuardar">Guardar</system:String>
+    <system:String x:Key="textGuardarComo">Guardar Como...</system:String>
+    <system:String x:Key="textGuardarTodo">Guardar Todo</system:String>
+    <system:String x:Key="textAutoguardado">Autoguardado</system:String>
+    <system:String x:Key="textImprimir">Imprimir</system:String>
+    <system:String x:Key="textSalir">Salir</system:String>
+
+    <!--Text Item Editar -->
+    <system:String x:Key="textDeshacer">Deshacer</system:String>
+    <system:String x:Key="textRehacer">Rehacer</system:String>
+    <system:String x:Key="textCortar">Cortar</system:String>
+    <system:String x:Key="textCopiar">Copiar</system:String>
+    <system:String x:Key="textPegar">Pegar</system:String>
+    <system:String x:Key="textEliminar">Eliminar</system:String>
+    <system:String x:Key="textBuscar">Buscar</system:String>
+    <system:String x:Key="textReemplazar">Reemplazar</system:String>
+    <system:String x:Key="textSeleccionarTodo">Seleccionar Todo</system:String>
+    <system:String x:Key="textSeleccion">Selección</system:String>
 
 
-    <!--OPEN TEXT-->
+
+    <!--   CONFIGURE TEXT    -->
+    <system:String x:Key="textConfiguracion">Configuración</system:String>
+    <!--Text Apariencia -->
+    <system:String x:Key="textApariencia">Apariencia</system:String>
+    <system:String x:Key="textTema">Tema de la aplicación</system:String>
+    <system:String x:Key="textIdioma">Idioma</system:String>  
     <system:String x:Key="es_Es">Español</system:String>
     <system:String x:Key="en_En">Ingles</system:String>
+    <system:String x:Key="textColor">Color</system:String>
+    <system:String x:Key="textClaro">Claro</system:String>
+    <system:String x:Key="textOscuro">Oscuro</system:String>
+    <system:String x:Key="textFormato">Formato de Texto</system:String>
+    <system:String x:Key="textFuente">Fuente</system:String>
+    <system:String x:Key="textFamilia">Familia</system:String>
+    <system:String x:Key="textTamaño">Tamaño</system:String>
 
-    <system:String x:Key="Tool_Idioma">Idioma</system:String>
+
 
     <!--CUENTA TEXT-->
 
