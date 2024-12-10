@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             
+             xmlns:cc="ICSharpCode.AvalonEdit.CodeCompletion"
              xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
              
              StartupUri="MainWindow.xaml">
@@ -855,26 +855,59 @@
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="ToolTip">
-                <Setter Property="ToolTipService.Placement" Value="Mouse"/>
-                <Setter Property="ToolTipService.HorizontalOffset" Value="-25"/>
-                <Setter Property="ToolTipService.VerticalOffset" Value="-25"/>
+   
+
+            <Style  TargetType="ToolTip">
+                <Setter Property="MaxWidth" Value="350" />
+                <Setter Property="Height" Value="Auto" />
+                <Setter Property="Width" Value="Auto" />
+                <Setter Property="TextBlock.TextAlignment" Value="Justify" />
+                <Setter Property="TextElement.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                <Setter Property="Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="ToolTipService.HorizontalOffset" Value="-10"/>
+                <Setter Property="ToolTipService.VerticalOffset" Value="-10"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ToolTip">
-                            <Grid>
-                                <Border Margin="25" Background="{DynamicResource ColorToolTip}" BorderBrush="{DynamicResource ColorMessageBoxLine}" BorderThickness="1" CornerRadius="5" Padding="4">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="Black" Direction="270" ShadowDepth="4" Opacity="0.2" BlurRadius="30"/>
-                                    </Border.Effect>
-                                    <TextBlock Text="{TemplateBinding Content}" Margin="4" Background="{DynamicResource ColorToolTip}" Foreground="{DynamicResource ColorCustomNegroG}"/>
-                                </Border>
-                            </Grid>
+                            <Border
+                        Name="Border"
+                        Width="{TemplateBinding Width}"
+                        Height="{TemplateBinding Height}"
+                        MaxWidth="{TemplateBinding MaxWidth}"
+                        Padding="8"
+                        Background="{DynamicResource ColorToolTip}"
+                        BorderBrush="{DynamicResource ColorMessageBoxLine}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Margin="10"
+                        SnapsToDevicePixels="True">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                BlurRadius="10"
+                                Direction="270"
+                                Opacity="0.2"
+                                ShadowDepth="0"
+                                Color="#202020" />
+                                </Border.Effect>
+                                <ContentPresenter
+                            Margin="4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top">
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
-
 
             <Style TargetType="ContextMenu">
                 
@@ -900,14 +933,16 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="MenuItem">
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}">
-                                <Grid Height="30">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" Margin="5 0 5 0" CornerRadius="5" >
+                                <Grid Height="30" Margin="10 0 10 0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="60"/>
                                     </Grid.ColumnDefinitions>
-                                    <ContentPresenter Grid.Column="0" ContentSource="Icon" Margin="10,0,10,0"/>
+                                    <ContentPresenter Grid.Column="0" ContentSource="Icon" VerticalAlignment="Center" Margin="0 0 15 0"/>
                                     <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center"/>
+                                    <ContentPresenter Grid.Column="2" ContentSource="InputGestureText" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -1656,9 +1691,100 @@
         TargetType="{x:Type MenuItem}" />
 
 
+            <!-- *************************************************************************  -->
+            <!--  ListBox Autocompletation  -->
+            <!-- Estilo personalizado para ListBox -->
+            <Style TargetType="ListBox" x:Key="CustomListBoxStyle">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBox">
+                            <Border Background="{DynamicResource PanelMenuFillColor}" 
+                        BorderBrush="{DynamicResource PanelAutocompleteBordeColor}" 
+                        BorderThickness="1" 
+                        CornerRadius="5">
+                                <ScrollViewer Margin="0" Padding="{TemplateBinding Padding}">
+                                    <ItemsPresenter/>
+                                </ScrollViewer>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="5"/>
+            </Style>
 
+            
 
+            <Style TargetType="ListBoxItem" x:Key="CompletionListBoxItemStyle">
+                <!-- Configuración inicial -->
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource PanelHooverTextColor}" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="Margin" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="BorderBrush" Value="{DynamicResource PanelMenuBordeColor}" />
+                <Setter Property="Cursor" Value="Hand" />
 
+                <!-- Plantilla personalizada -->
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border Name="Bd"
+					        Background="{TemplateBinding Background}"
+					        BorderBrush="{TemplateBinding BorderBrush}"
+					        BorderThickness="{TemplateBinding BorderThickness}"
+					        Padding="{TemplateBinding Padding}"
+					        SnapsToDevicePixels="true"
+                                    CornerRadius="3">
+                                <ContentPresenter
+							HorizontalAlignment="Stretch"
+							VerticalAlignment="Center"
+							SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </Border>
+
+                            <!-- Cambios visuales según los estados del ítem -->
+                            <ControlTemplate.Triggers>
+                                <!-- Cuando el ítem está seleccionado -->
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ColorContextMouseOver}" />
+                                    <Setter Property="Foreground" Value="White" />
+                                </Trigger>
+
+                                <!-- Cuando el mouse está sobre el ítem -->
+
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsMouseOver" Value="True" />
+                                        <Condition Property="IsSelected" Value="False" />
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PanelAutocompleteOverColor}" />
+
+                                </MultiTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- *************************************************************************  -->
+            <!--  Windon Autocompletation desactivar algunas cosas  -->
+            <Style TargetType="Window" x:Key="CustomWindowStyle">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="WindowStyle" Value="None"/>
+                <Setter Property="ResizeMode" Value="NoResize"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="AllowsTransparency" Value="True" />
+                <!--  Aliased breaks rounded control elements such as buttons  -->
+                <Setter Property="RenderOptions.EdgeMode" Value="Unspecified" />
+                <Setter Property="UseLayoutRounding" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+
+            </Style>
 
         </ResourceDictionary>
     </Application.Resources>

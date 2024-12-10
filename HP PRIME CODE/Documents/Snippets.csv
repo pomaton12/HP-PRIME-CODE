@@ -1,0 +1,46 @@
+﻿PalabraClave;DescripcionEs;DescripcionEn;PlantillaEs;PlantillaEn
+IF;"Sintaxis:
+FOR var FROM inicio TO (o DOWNTO) fin [STEP incremento] DO comandos END;
+
+Establece la variable var en inicio; luego, mientras el valor de esta variable sea igual o menor que (o más que en un DOWNTO) fin, ejecuta comandos y suma (o resta DOWNTO) 1 (o incremento) a var. 
+
+Ejemplos:
+//print  1 3 5 7 9
+FOR A FROM 1 TO 10 STEP 2
+  DO
+  PRINT(A); 
+END;
+
+
+//print  10 8 6 4 2
+FOR A FROM 10 DOWNTO 1 STEP 2
+  DO
+  PRINT(A); 
+END;";"Syntax:
+FOR var FROM start TO (or DOWNTO) finish [STEP increment] DO commands END;
+
+Sets variable var to start; then, for as long as this variable’s value is less than or equal to (or more than for a DOWNTO) finish, executes  commands and adds (or subtracts for DOWNTO) 1 (or increment) to var. 
+
+Examples:
+//print  1 3 5 7 9
+FOR A FROM 1 TO 10 STEP 2
+  DO
+  PRINT(A); 
+END;
+
+
+//print  10 8 6 4 2
+FOR A FROM 10 DOWNTO 1 STEP 2
+  DO
+  PRINT(A); 
+END;";"//Sintaxis: Bucle FOR
+
+LOCAL i;
+FOR i:= 1 TO 10 DO
+    // Ingrese Texto aqui
+END;";"//Syntax: FOR loop
+
+LOCAL i;
+FOR i:= 1 TO 10 DO
+    // Enter Text here
+END;"

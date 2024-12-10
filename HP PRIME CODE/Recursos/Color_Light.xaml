@@ -123,7 +123,7 @@
 
     <!-- COLORES CONTEXT MENU -->
     <Color x:Key="HexCustomContextBorde">#D4D4D4</Color>
-    <Color x:Key="HexCustomContextText">#7C7C7C</Color>
+    <Color x:Key="HexCustomContextText">#292929</Color>
     <Color x:Key="HexCustomContextTMouseOver">#0060C0</Color>
 
     <SolidColorBrush x:Key="ColorContextBorde" Color="{DynamicResource  HexCustomContextBorde}" />
@@ -184,5 +184,12 @@
     <SolidColorBrush x:Key="PanelMenuSelectColor" Color="{StaticResource HexPanelMenuSelectColor}" />
     <SolidColorBrush x:Key="PanelMenuBordeColor" Color="{StaticResource HexPanelMenuBordeColor}" />
     <SolidColorBrush x:Key="PanelMenuTextColor" Color="{StaticResource HexPanelMenuTextColor}" />
+
+    <!-- Para BPanel de Autocompletation  -->
+    <Color x:Key="HexPanelAutocompleteBordeColor">#C8C8C8</Color>
+    <Color x:Key="HexPanelAutocompleteOverColor">#E8E8E8</Color>
+
+    <SolidColorBrush x:Key="PanelAutocompleteBordeColor" Color="{StaticResource HexPanelAutocompleteBordeColor}" />
+    <SolidColorBrush x:Key="PanelAutocompleteOverColor" Color="{StaticResource HexPanelAutocompleteOverColor}" />
 
 </ResourceDictionary>

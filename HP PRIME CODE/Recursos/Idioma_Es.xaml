@@ -13,7 +13,7 @@
 
     <!--Text Item Archivo-->
     <system:String x:Key="textNuevo">Nuevo</system:String>
-    <system:String x:Key="textAbrir">Editar</system:String>
+    <system:String x:Key="textAbrir">Abrir</system:String>
     <system:String x:Key="textGuardar">Guardar</system:String>
     <system:String x:Key="textGuardarComo">Guardar Como...</system:String>
     <system:String x:Key="textGuardarTodo">Guardar Todo</system:String>

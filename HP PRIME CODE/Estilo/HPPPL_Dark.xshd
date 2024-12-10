@@ -91,6 +91,38 @@
         <Word>ABS</Word><Word>%CHANGE</Word><Word>%TOTAL</Word><Word>CAS</Word><Word>EVALLIST</Word><Word>EXECON</Word><Word>→HMS</Word><Word>HMS→</Word><Word>ITERATE</Word><Word>TICKS</Word><Word>TEVAL</Word><Word>TYPE</Word>
     </Keywords>
 
+	<!-- Archivos -->
+	<Keywords foreground="Teal">
+		<Word>AFiles</Word>
+		<Word>AFilesB</Word>
+		<Word>ANote</Word>
+		<Word>AProgram</Word>
+		<Word>DelAVars</Word>
+		<Word>DelAFiles</Word>
+	</Keywords>
+
+	<!-- TRIGONOMETRIA -->
+	<Keywords foreground="Teal">
+		<Word>SIN</Word>
+		<Word>COS</Word>
+		<Word>TAN</Word>
+		<Word>ASIN</Word>
+		<Word>ACOS</Word>
+		<Word>ATAN</Word>
+		<Word>CSC</Word>
+		<Word>ACSC</Word>
+		<Word>SEC</Word>
+		<Word>ASEC</Word>
+		<Word>COT</Word>
+		<Word>ACOT</Word>
+		<Word>SINH</Word>
+		<Word>ASINH</Word>
+		<Word>COSH</Word>
+		<Word>ACOSH</Word>
+		<Word>TANH</Word>
+		<Word>ATANH</Word>
+	</Keywords>
+
     <!-- Digits -->
     <Rule foreground="#D4D4D4">
         \b0[xX][0-9a-fA-F]+  # hex number

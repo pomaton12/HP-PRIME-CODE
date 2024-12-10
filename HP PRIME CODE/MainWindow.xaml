@@ -38,7 +38,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="35"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="22"  />                
+                <RowDefinition Height="25"  />                
             </Grid.RowDefinitions>
 
             <local1:TitleCustom Grid.Row="0" Height="35" >
@@ -58,19 +58,19 @@
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <Menu ItemContainerStyle="{StaticResource UiMenuItem}">
                                     <MenuItem Header="{DynamicResource textArchivo}"  >
-                                        <MenuItem Header="{DynamicResource textNuevo}"  InputGestureText="Ctrl+N"/>
-                                        <MenuItem Header="{DynamicResource textAbrir}"  InputGestureText="Ctrl+O">
+                                        <MenuItem Header="{DynamicResource textNuevo}"  InputGestureText="Ctrl+N" Click="NuevoButton_Click"/>
+                                        <MenuItem Header="{DynamicResource textAbrir}"  InputGestureText="Ctrl+O" Click="AbrirButton_Click">
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoFolder}" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="{DynamicResource textGuardar}"  InputGestureText="Ctrl+S">
+                                        <MenuItem Header="{DynamicResource textGuardar}"  InputGestureText="Ctrl+S" Click="GuardarButton_Click">
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoSaveAs}" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="{DynamicResource textGuardarComo}"  InputGestureText="Ctrl+Mayús+S"/>
-                                        <MenuItem Header="{DynamicResource textGuardarTodo}"  InputGestureText="Ctrl+Alt+S">
+                                        <MenuItem Header="{DynamicResource textGuardarComo}"  InputGestureText="Ctrl+Mayús+S" Click="GuardarComoButton_Click"/>
+                                        <MenuItem Header="{DynamicResource textGuardarTodo}"  InputGestureText="Ctrl+Alt+S" Click="GuardarTodoButton_Click">
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoSave}" Width="16" Stretch="Fill"  HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
@@ -81,7 +81,7 @@
                                                 <TextBlock Text="&#xf7bb;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="{DynamicResource textImprimir}"  InputGestureText="Ctrl+P">
+                                        <MenuItem Header="{DynamicResource textImprimir}"  InputGestureText="Ctrl+P" Click="PrintButton_Click">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xe749;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
@@ -123,12 +123,12 @@
                                             </MenuItem.Icon>
                                         </MenuItem>
                                         <Separator />
-                                        <MenuItem Header="{DynamicResource textBuscar}"  InputGestureText="Ctrl+B">
+                                        <MenuItem Header="{DynamicResource textBuscar}"  InputGestureText="Ctrl+F">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xe721;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="{DynamicResource textReemplazar}"  InputGestureText="Ctrl+R">
+                                        <MenuItem Header="{DynamicResource textReemplazar}"  InputGestureText="Ctrl+H">
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoReplace}" Width="17" Height="17"  HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
@@ -474,7 +474,7 @@
                                                         <RowDefinition Height="*" />
                                                     </Grid.RowDefinitions>
                                                     <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
-                                                    <Border  Grid.Row="1"  Background="red"  Margin="0 5 26 15">
+                                                    <Border  Grid.Row="1"  Background="{DynamicResource EditorFillColor}"  Margin="0 5 26 15">
                                                         <ContentPresenter x:Name="Panelmini" ContentSource="SelectedContent" />
                                                     </Border>
                                                 </Grid>
@@ -494,7 +494,8 @@
                             IsHitTestVisible="False"
                             VerticalAlignment="Bottom"
                             HorizontalAlignment="Right"/>
-                          
+
+
 
                         <Border x:Name="BorderPanelBuscar" Width="420"  Margin="0 30 30 0" Background="{DynamicResource ColorSearchFondo}" CornerRadius="0 0 5 5" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
 
@@ -631,7 +632,7 @@
 
                     </Grid>
 
-                    <Grid Grid.Column="1" x:Name="Panel_ConfigHP"  Width="335" Visibility="Visible">
+                    <Grid Grid.Column="1" x:Name="Panel_ConfigHP"  Width="335" Visibility="Collapsed">
 
                         <Border 
                             Margin="5" 
@@ -873,6 +874,11 @@
                     </Grid.ColumnDefinitions>
 
 
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+
+
+                        <TextBlock Text="Version: 0.5.3" Margin="10 0 0 0" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource PanelHooverTextColor}"/>
+                    </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal">
 
