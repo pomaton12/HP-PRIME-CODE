@@ -15,7 +15,8 @@
 
     <Color x:Key="HexCustomFondoResult">#191919</Color>
     <Color x:Key="HexCustomDefault">#444444</Color>
-    <Color x:Key="HexCustomTheme">#252526</Color>
+    <Color x:Key="HexCustomTheme">#2C2C2C</Color>
+    <Color x:Key="HexCustomTitleTheme">#202020</Color>
 
     <Color x:Key="HexCustomSelectMenu">#03c1f4</Color>
     <Color x:Key="HexCustomMouseOver">#292929</Color>
@@ -24,7 +25,7 @@
     <Color x:Key="HexCustomPP">#505050</Color>
     <SolidColorBrush x:Key="ColorBorderPP" Color="{DynamicResource  HexCustomPP}" />
     <SolidColorBrush x:Key="ColorCustomTheme" Color="{DynamicResource  HexCustomTheme}" />
-
+    <SolidColorBrush x:Key="ColorCustomTitleTheme" Color="{DynamicResource  HexCustomTitleTheme}" />
     <SolidColorBrush x:Key="ColorCustomRegla" Color="{DynamicResource  HexCustomSelectRegla}" />
 
     <!-- TODO PARA OPEN -->
@@ -101,7 +102,7 @@
 
     <SolidColorBrush x:Key="ColorW11Red" Color="{DynamicResource  HexCustomW11Red}" />
     <SolidColorBrush x:Key="ColorW11Verde" Color="{DynamicResource  HexCustomW11Verde}" />
-    <SolidColorBrush x:Key="ColorW11Morado" Color="{DynamicResource  HexCustomW11Verde}" />
+    <SolidColorBrush x:Key="ColorW11Morado" Color="{DynamicResource  HexCustomW11Morado}" />
     
     <!-- PARA TOOLTIP -->
     <Color x:Key="HexCustomToolTip">#2C2E30</Color>
@@ -123,11 +124,13 @@
     <!-- COLORES CONTEXT MENU -->
     <Color x:Key="HexCustomContextBorde">#424242</Color>
     <Color x:Key="HexCustomContextText">#C2C2C2</Color>
-    <Color x:Key="HexCustomContextTMouseOver">#006CBE</Color>
+    <Color x:Key="HexCustomContextTMouseOver">#094771</Color>
+    <Color x:Key="HexCustomContextTMouseOverBorder">#80094771</Color>
 
     <SolidColorBrush x:Key="ColorContextBorde" Color="{DynamicResource  HexCustomContextBorde}" />
     <SolidColorBrush x:Key="ColorContextText" Color="{DynamicResource  HexCustomContextText}" />
     <SolidColorBrush x:Key="ColorContextMouseOver" Color="{DynamicResource  HexCustomContextTMouseOver}" />
+    <SolidColorBrush x:Key="ColorContextMouseOverBorder" Color="{DynamicResource  HexCustomContextTMouseOverBorder}" />
 
     <!-- PARA PANEL BUSCAR -->
     <Color x:Key="HexCustomSearchFondo">#252526</Color>
@@ -140,16 +143,23 @@
     <!--  DynamicScrollBar  -->
     <Color x:Key="AcrylicBackgroundFillColorDefault">#2C2C2C</Color>
     <Color x:Key="SubtleFillColorTransparent">#00FFFFFF</Color>
-    <Color x:Key="ControlStrongFillColorDefault">#8BFFFFFF</Color>
+    <Color x:Key="ControlStrongFillColorDefault">#99898989</Color>
+
+    <Color x:Key="ControlStrongOverNoColorDefault">#50898989</Color>
+    <Color x:Key="ControlStrongOverColorDefault">#85898989</Color>
 
     <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="{StaticResource AcrylicBackgroundFillColorDefault}" />
     <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="{StaticResource SubtleFillColorTransparent}" />
     <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{StaticResource ControlStrongFillColorDefault}" />
     <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{StaticResource ControlStrongFillColorDefault}" />
 
+    <SolidColorBrush x:Key="ScrollBarThumbOverNo" Color="{StaticResource ControlStrongOverNoColorDefault}" />
+    <SolidColorBrush x:Key="ScrollBarThumbOver" Color="{StaticResource ControlStrongOverColorDefault}" />
+
+
     <!--  Dynamic Editor  -->
-    <Color x:Key="EditorFillColorDefault">#1E1E1E</Color>
-    <Color x:Key="EditorTextColorDefault">LightSkyBlue</Color>
+    <Color x:Key="EditorFillColorDefault">#171717</Color>
+    <Color x:Key="EditorTextColorDefault">#D4D4D4</Color>
     <Color x:Key="EditorLineNumberColorDefault">#858385</Color>
     <Color x:Key="EditorSelectionColorDefault">#80055FB5</Color>
 

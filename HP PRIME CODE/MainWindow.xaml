@@ -22,6 +22,7 @@
         Closing="Window_Closing">
 
 
+
     <Window.Resources>
         <ResourceDictionary>
             <SolidColorBrush x:Key="BorderBlanco" Color="{DynamicResource HexCustomDefault}" />
@@ -158,15 +159,25 @@
                                             </MenuItem.Icon>
                                         </MenuItem>
                                     </MenuItem>
-                                    <MenuItem Header="{DynamicResource textDibujar}">
-                                        <MenuItem Header="Acerca de"  >
+                                    <MenuItem Header="{DynamicResource textAvanzados}">
+                                        <MenuItem Header="Dar Formato al Documento"  >
                                             <MenuItem.Icon>
-                                                <TextBlock Text="&#xE7A6;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <Image Source="{DynamicResource IconoAlinear}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Contraer Bloques" Click="FoldAll_Click" >
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoUnExpand}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Expandir Bloques"  Click="UnfoldAll_Click">
+                                            <MenuItem.Icon>
+                                                <Image Source="{DynamicResource IconoExpand}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
                                     </MenuItem>
                                     <MenuItem Header="{DynamicResource textDepurar}">
-                                        <MenuItem Header="Iniciar Depuracion"  InputGestureText="Ctrl+F5">
+                                        <MenuItem Header="Iniciar Depuracion"  InputGestureText="Ctrl+F5" Click="DepurarButon_click">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xedda;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorW11Verde}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
@@ -180,7 +191,7 @@
                                         </MenuItem>
                                         <MenuItem Header="Configuracion de Emulador" >
                                             <MenuItem.Icon>
-                                                <TextBlock Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <Image Source="{DynamicResource IconoConfig}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
                                     </MenuItem>
@@ -209,7 +220,7 @@
                                     HorizontalAlignment="Right"
                                     ToolTip="Mostrar Barra de Herramientas">
                                     <TextBlock 
-                                    Text="&#xe901;"
+                                    Text="&#xe902;"
                                     FontFamily="{StaticResource iconPrime}"
                                     Foreground="{DynamicResource ColorIconNormal}"
                                     HorizontalAlignment="Center"
@@ -238,11 +249,9 @@
 
                 <!-- Barra de Herramientas -->
 
-                <Border Grid.Row="0" x:Name="BH_Inicio" Height="47"  Visibility="Visible"  Margin="10 0 10 5" CornerRadius="5"   Background="{StaticResource BorderBlanco}" BorderThickness="0" BorderBrush="{DynamicResource ColorLineTools}" >
-                    <Border.Effect>
-                        <DropShadowEffect Color="Black" BlurRadius="8" RenderingBias="Quality" Direction="270" ShadowDepth="1" Opacity="0.15"/>
-                    </Border.Effect>
-                    
+                <Border Grid.Row="0" x:Name="BH_Inicio" Height="47"  Visibility="Visible"  Margin="0 0 0 0" CornerRadius="0"   Background="{DynamicResource ColorCustomTheme}" BorderThickness="0" BorderBrush="{DynamicResource ColorLineTools}" >
+
+                                    
                     <Grid Margin="5 0" >
                         
                         <!-- Barra de Inicio -->
@@ -266,7 +275,7 @@
                             <Button x:Name="cbbtn_file" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Crear Nuevo" Click="NuevoButton_Click" >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                    <Image Source="{DynamicResource IconoFile}" Width="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Image Source="{DynamicResource IconoFile}" Width="18" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 </StackPanel>
                             </Button>
@@ -296,14 +305,14 @@
                             <Button x:Name="cbbtn_print" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Imprimir" Click="PrintButton_Click"  >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                    <Image Source="{DynamicResource IconoPrint}" Width="19"  Height="19" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Image Source="{DynamicResource IconoPrint}" Width="18"  Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                                 </StackPanel>
                             </Button>
 
                             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
 
-                            <Button x:Name="cbbtn_cut" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Cortar  (Ctrl + X)" Click="CortarButton_Click" IsEnabled="False" Opacity="0.3">
+                            <Button x:Name="cbbtn_cut" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Cortar  (Ctrl + X)" Click="CortarButton_Click"  >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
                                     <Image Source="{DynamicResource IconoCut}" Width="18"  Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -312,7 +321,7 @@
                             </Button>
 
 
-                            <Button x:Name="cbbtn_copy" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Copiar  (Ctrl + C)" Click="CopiarButton_Click" IsEnabled="False" Opacity="0.3">
+                            <Button x:Name="cbbtn_copy" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Copiar  (Ctrl + C)" Click="CopiarButton_Click"  >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
                                     <Image Source="{DynamicResource IconoCopy}" Width="18"  Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -404,232 +413,318 @@
                     </Grid.ColumnDefinitions>
 
 
-                    <Grid Grid.Column="0" >
-                        <TabControl x:Name="tabControl">
-                            <TabControl.Resources>
-                                <Style TargetType="TabItem">
-                                    <Setter Property="Height" Value="35" />
-                                    <Setter Property="FontSize" Value="12" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="TabItem">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="24" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <Border Name="Border"  Background="{DynamicResource TabControlDesactivateColor}"  Margin="1 0 0 0" CornerRadius="0 0 0 0">
-                                                        <ContentPresenter x:Name="ContentSite" TextBlock.Foreground="{DynamicResource ColorCustomSemiNegroG}" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2" Grid.Column="0" />
-                                                    </Border>
+                    <Grid Grid.Column="0" Margin="5 0 5 5">
 
-                                                    <Border Name="Border1" Grid.Column="1" Background="{DynamicResource TabControlDesactivateColor}" Margin="0 0 0 0" CornerRadius="0 0 0 0">
-                                                        <Button Name="Button"   
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition x:Name="ErrorPanelRow" Height="0" MinHeight="0" MaxHeight="250" />
+                            <!-- Error Panel -->
+
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <TabControl x:Name="tabControl">
+                                <TabControl.Resources>
+                                    <Style TargetType="TabItem">
+                                        <Setter Property="Height" Value="35" />
+                                        <Setter Property="FontSize" Value="12" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TabItem">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="15" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="24" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Border Name="Border0" Grid.Column="0" Background="{DynamicResource TabControlDesactivateColor}"  Margin="1 0 0 0"  BorderThickness="1 1 0 0" CornerRadius="5 0 0 0" BorderBrush="{DynamicResource TabControlDesactivateColor}">
+                                                            <TextBlock Margin="5 0 0 0" Text="&#xEDAF;" Foreground="Transparent" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="8"  />
+                                                        </Border>
+
+                                                        <Border Name="Border" Grid.Column="1" Background="{DynamicResource TabControlDesactivateColor}"  Margin="0 0 0 0" BorderThickness="0 1 0 0" BorderBrush="{DynamicResource TabControlDesactivateColor}">
+                                                            <ContentPresenter x:Name="ContentSite" TextBlock.Foreground="{DynamicResource ColorCustomSemiNegroG}" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="5 ,2, 5,2" Grid.Column="0" />
+                                                        </Border>
+
+                                                        <Border Name="Border1" Grid.Column="2" Background="{DynamicResource TabControlDesactivateColor}" Margin="0 0 0 0" BorderThickness="0 1 1 0" CornerRadius="0 5 0 0" BorderBrush="{DynamicResource TabControlDesactivateColor}">
+                                                            <Button Name="Button"   
                                                                 Width="20" 
                                                                 Height="20" 
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource BotonCerrarItems}"
-                                                        Foreground="Transparent" 
-                                                        Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                                                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TabItem}}"
-                                                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                                        Padding="0" >
-                                                            <TextBlock Margin="0 0 0 0" Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="8"  />
-                                                        </Button>
-                                                    </Border>
-                                                </Grid>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource ColorIconBlue}" />
-                                                        <Setter TargetName="Border1" Property="Background" Value="{DynamicResource ColorIconBlue}" />
-                                                        <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
-                                                        <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomBlancoG}" />
-                                                    </Trigger>
+                                                                Foreground="Transparent" 
+                                                                Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                                                Padding="0" >
+                                                                <TextBlock Margin="0 0 0 0" Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="8"  />
+                                                            </Button>
+                                                        </Border>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="Border0" Property="BorderBrush" Value="{DynamicResource PanelMenuBordeColor}" />
+                                                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PanelMenuBordeColor}" />
+                                                            <Setter TargetName="Border1" Property="BorderBrush" Value="{DynamicResource PanelMenuBordeColor}" />
+                                                            <Setter TargetName="Border0" Property="Background" Value="{DynamicResource EditorFillColor}" />
+                                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource EditorFillColor}" />
+                                                            <Setter TargetName="Border1" Property="Background" Value="{DynamicResource EditorFillColor}" />
+                                                            <Setter TargetName="Border0" Property="Margin" Value="0 0 0 -1" />
+                                                            <Setter TargetName="Border" Property="Margin" Value="0 0 0 -1" />
+                                                            <Setter TargetName="Border1" Property="Margin" Value="0 0 -1 -1" />
+                                                            <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                                            <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                                        </Trigger>
 
-                                                    <MultiTrigger>
-                                                        <MultiTrigger.Conditions>
-                                                            <Condition Property="IsMouseOver" Value="True" />
-                                                            <Condition Property="IsSelected" Value="False" />
-                                                        </MultiTrigger.Conditions>
-                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
-                                                        <Setter TargetName="Border1" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
-                                                        <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
-                                                        <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                                        <MultiTrigger>
+                                                            <MultiTrigger.Conditions>
+                                                                <Condition Property="IsMouseOver" Value="True" />
+                                                                <Condition Property="IsSelected" Value="False" />
+                                                            </MultiTrigger.Conditions>
+                                                            <Setter TargetName="Border0" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
+                                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
+                                                            <Setter TargetName="Border1" Property="Background" Value="{DynamicResource TabControlDesactivateColor}" />
+                                                            <Setter TargetName="ContentSite" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
+                                                            <Setter TargetName="Button" Property="TextBlock.Foreground" Value="{DynamicResource ColorCustomNegroG}" />
 
-                                                    </MultiTrigger>
 
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TabControl.Resources>
-                            <TabControl.Style>
-                                <Style TargetType="TabControl">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="TabControl">
-                                                <Grid Background="{DynamicResource EditorFillColor}">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="*" />
-                                                    </Grid.RowDefinitions>
-                                                    <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
-                                                    <Border  Grid.Row="1"  Background="{DynamicResource EditorFillColor}"  Margin="0 5 26 15">
-                                                        <ContentPresenter x:Name="Panelmini" ContentSource="SelectedContent" />
-                                                    </Border>
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TabControl.Style>
+                                                        </MultiTrigger>
+
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </TabControl.Resources>
+                                <TabControl.Style>
+                                    <Style TargetType="TabControl">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TabControl">
+                                                    <Grid Background="{DynamicResource EditorFillColor}">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="5" />
+                                                            <RowDefinition Height="*" />
+                                                        </Grid.RowDefinitions>
+                                                        <TabPanel Grid.Row="0" Panel.ZIndex="1" Background="{DynamicResource ColorCustomTheme}" Margin="0,0,0,0" IsItemsHost="True" />
+                                                        <Border  Grid.Row="1"  Background="{DynamicResource EditorFillColor}"  Margin="0" BorderThickness="0 1 0 0" BorderBrush="{DynamicResource PanelMenuBordeColor}"/>
+
+                                                        <Border  Grid.Row="2"  Background="{DynamicResource EditorFillColor}"  Margin="0 0 26 15">
+                                                            <ContentPresenter x:Name="Panelmini" ContentSource="SelectedContent" />
+                                                        </Border>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </TabControl.Style>
                         
-                        </TabControl>
+                            </TabControl>
                     
-                        <Canvas Margin="0 0 15 0" 
+                            <Canvas Margin="0 0 16 0" 
                                 
-                            x:Name="minimap"  
-                            Width="5"
+                                x:Name="minimap"  
+                                Width="5"
                             
-                            IsHitTestVisible="False"
-                            VerticalAlignment="Bottom"
-                            HorizontalAlignment="Right"/>
+                                IsHitTestVisible="False"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Right"/>
 
 
 
-                        <Border x:Name="BorderPanelBuscar" Width="420"  Margin="0 30 30 0" Background="{DynamicResource ColorSearchFondo}" CornerRadius="0 0 5 5" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
+                            <Border x:Name="BorderPanelBuscar" Width="420"  Margin="0 30 30 0" Background="{DynamicResource ColorSearchFondo}" CornerRadius="0 0 5 5" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
 
-                            <Border.Effect>
-                                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" Opacity="0.3" BlurRadius="15"/>
-                            </Border.Effect>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" Opacity="0.3" BlurRadius="15"/>
+                                </Border.Effect>
 
-                            <Grid Margin=" 0 0 0 0" >
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="29" />
-                                    <RowDefinition Height="Auto"  />
-                                    <RowDefinition Height="5"  />
+                                <Grid Margin=" 0 0 0 0" >
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="29" />
+                                        <RowDefinition Height="Auto"  />
+                                        <RowDefinition Height="5"  />
 
-                                </Grid.RowDefinitions>
+                                    </Grid.RowDefinitions>
 
-                                <Grid Grid.Row="0">
+                                    <Grid Grid.Row="0">
 
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Button  Width="20" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Alternar Buscar o Reemplazar" Click="SearchReplaceButton_Click">
-                                            <TextBlock x:Name="TextSearchCollapse" Text="&#xE972;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Button>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Button  Width="20" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Alternar Buscar o Reemplazar" Click="SearchReplaceButton_Click">
+                                                <TextBlock x:Name="TextSearchCollapse" Text="&#xE972;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Button>
 
-                                        <Border x:Name="BorderSearchContent" Width="200" Margin=" 0 3 0 0" Background="{DynamicResource ColorSearchContent}"  BorderThickness="1" BorderBrush="Transparent">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Grid Width="124" >
-                                                    <TextBox Width="124" Height="25" Margin="0 3 0 0" x:Name="MiTextBoxBuscar" BorderThickness="0" Padding="3 0 0 0" Foreground="{DynamicResource ColorCustomNegroG}" Background="Transparent" GotFocus="TextBoxBuscar_GotFocus" LostFocus="TextBoxBuscar_LostFocus" TextChanged="SearchTextBox_TextChanged" HorizontalAlignment="Stretch" ToolTip="Buscar">
-                                                        <TextBox.Style>
-                                                            <Style TargetType="TextBox" BasedOn="{x:Null}"/>
-                                                        </TextBox.Style>
-                                                    </TextBox>
-                                                    <TextBlock x:Name="MiTextBlockBuscar" Margin="3 2 0 0" IsHitTestVisible="False" Text="Buscar..." Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                                                </Grid>
+                                            <Border x:Name="BorderSearchContent" Width="200" Margin=" 0 3 0 0" Background="{DynamicResource ColorSearchContent}"  BorderThickness="1" BorderBrush="Transparent">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Grid Width="124" >
+                                                        <TextBox Width="124" Height="25" Margin="0 3 0 0" x:Name="MiTextBoxBuscar" BorderThickness="0" Padding="3 0 0 0" Foreground="{DynamicResource ColorCustomNegroG}" Background="Transparent" GotFocus="TextBoxBuscar_GotFocus" LostFocus="TextBoxBuscar_LostFocus" TextChanged="SearchTextBox_TextChanged" HorizontalAlignment="Stretch" ToolTip="Buscar">
+                                                            <TextBox.Style>
+                                                                <Style TargetType="TextBox" BasedOn="{x:Null}"/>
+                                                            </TextBox.Style>
+                                                        </TextBox>
+                                                        <TextBlock x:Name="MiTextBlockBuscar" Margin="3 2 0 0" IsHitTestVisible="False" Text="Buscar..." Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                                    </Grid>
 
-                                                <Button x:Name="MatchCaseButton"  Width="22" Height="22" BorderThickness="1" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidir mayúsculas y minúsculas " Click="MatchCaseButton_Click">
-                                                    <TextBlock  Text="Aa" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Button x:Name="MatchCaseButton"  Width="22" Height="22" BorderThickness="1" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidir mayúsculas y minúsculas " Click="MatchCaseButton_Click">
+                                                        <TextBlock  Text="Aa" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+                                                    <Button x:Name="WholeWordSearchButton"   Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Solo palabras completas" Click="WholeWordSearchButton_Click">
+                                                        <TextBlock  Text="&#xE903;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+                                                    <Button  x:Name="UseRegexButton" Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Usar expresión regular" Click="UseRegexButton_Click">
+                                                        <TextBlock  Text="&#xE901;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <StackPanel Orientation="Horizontal" Margin=" 3 3 3 0">
+                                                <TextBlock x:Name="TextCountSearch" Text="No hay resultados" Width="117" Margin="3 4 0 0" FontSize="13"  Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+
+                                                <Button x:Name="PreviousButton"  Width="22" Height="22" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidencia Anterior" Click="PreviousButton_Click">
+                                                    <TextBlock  Text="&#xE74A;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
-                                                <Button x:Name="WholeWordSearchButton"   Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Solo palabras completas" Click="WholeWordSearchButton_Click">
-                                                    <TextBlock  Text="&#xE903;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Button x:Name="NextButton"  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidencia Siguiente" Click="NextButton_Click">
+                                                    <TextBlock  Text="&#xE74B;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
-                                                <Button  x:Name="UseRegexButton" Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Usar expresión regular" Click="UseRegexButton_Click">
-                                                    <TextBlock  Text="&#xE901;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Button  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Cerrar" Click="SearchClosedButton_Click">
+                                                    <TextBlock  Text="&#xE711;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                             </StackPanel>
-                                        </Border>
-
-                                        <StackPanel Orientation="Horizontal" Margin=" 3 3 3 0">
-                                            <TextBlock x:Name="TextCountSearch" Text="No hay resultados" Width="117" Margin="3 4 0 0" FontSize="13"  Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
 
-                                            <Button x:Name="PreviousButton"  Width="22" Height="22" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidencia Anterior" Click="PreviousButton_Click">
-                                                <TextBlock  Text="&#xE74A;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
-                                            <Button x:Name="NextButton"  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Coincidencia Siguiente" Click="NextButton_Click">
-                                                <TextBlock  Text="&#xE74B;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
-                                            <Button  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Cerrar" Click="SearchClosedButton_Click">
-                                                <TextBlock  Text="&#xE711;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
+
                                         </StackPanel>
 
 
+                                    </Grid>
 
-                                    </StackPanel>
+                                    <Grid Grid.Row="1">
 
+                                        <StackPanel x:Name="PanelReplaceVisibility" Height="29" Margin="22 0 0 0" Orientation="Horizontal" HorizontalAlignment="Stretch" Visibility="Collapsed">
 
-                                </Grid>
+                                            <Border x:Name="BorderReplaceContent" Width="200" Margin=" 0 3 0 0" Background="{DynamicResource ColorSearchContent}"  BorderThickness="1" BorderBrush="Transparent">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Grid Width="172" >
+                                                        <TextBox Width="172" Height="25" Margin="0 3 0 0" x:Name="MiTextBoxReemplazar" BorderThickness="0" Padding="3 0 0 0" Foreground="{DynamicResource ColorCustomNegroG}" Background="Transparent" GotFocus="TextBoxReemplazar_GotFocus" LostFocus="TextBoxReemplazar_LostFocus" HorizontalAlignment="Stretch" ToolTip="Reemplazar">
+                                                            <TextBox.Style>
+                                                                <Style TargetType="TextBox" BasedOn="{x:Null}"/>
+                                                            </TextBox.Style>
+                                                        </TextBox>
+                                                        <TextBlock x:Name="MiTextBlockReemplazar" Margin="3 2 0 0" IsHitTestVisible="False" Text="Reemplazar..." Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                                    </Grid>
 
-                                <Grid Grid.Row="1">
-
-                                    <StackPanel x:Name="PanelReplaceVisibility" Height="29" Margin="22 0 0 0" Orientation="Horizontal" HorizontalAlignment="Stretch" Visibility="Collapsed">
-
-                                        <Border x:Name="BorderReplaceContent" Width="200" Margin=" 0 3 0 0" Background="{DynamicResource ColorSearchContent}"  BorderThickness="1" BorderBrush="Transparent">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Grid Width="172" >
-                                                    <TextBox Width="172" Height="25" Margin="0 3 0 0" x:Name="MiTextBoxReemplazar" BorderThickness="0" Padding="3 0 0 0" Foreground="{DynamicResource ColorCustomNegroG}" Background="Transparent" GotFocus="TextBoxReemplazar_GotFocus" LostFocus="TextBoxReemplazar_LostFocus" HorizontalAlignment="Stretch" ToolTip="Reemplazar">
-                                                        <TextBox.Style>
-                                                            <Style TargetType="TextBox" BasedOn="{x:Null}"/>
-                                                        </TextBox.Style>
-                                                    </TextBox>
-                                                    <TextBlock x:Name="MiTextBlockReemplazar" Margin="3 2 0 0" IsHitTestVisible="False" Text="Reemplazar..." Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                                                </Grid>
-
-                                                <Button x:Name="PreserveCaseButton"  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Conservar mayúsculas y minúsculas" Click="PreserveCaseButton_Click">
-                                                    <TextBlock Text="AB"  Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Button>
+                                                    <Button x:Name="PreserveCaseButton"  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Conservar mayúsculas y minúsculas" Click="PreserveCaseButton_Click">
+                                                        <TextBlock Text="AB"  Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
                                             
+                                                </StackPanel>
+                                            </Border>
+
+                                            <StackPanel Orientation="Horizontal" Margin=" 3 3 3 0">
+
+                                                <Button  Width="22" Height="22" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Reemplazar siguiente" Click="ReplaceNextButton_Click">
+                                                    <TextBlock  Text="&#xE904;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+                                                <Button  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Reemplazar Todo" Click="ReplaceAllButton_Click">
+                                                    <TextBlock  Text="&#xE905;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+
                                             </StackPanel>
-                                        </Border>
-
-                                        <StackPanel Orientation="Horizontal" Margin=" 3 3 3 0">
-
-                                            <Button  Width="22" Height="22" Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Reemplazar siguiente" Click="ReplaceNextButton_Click">
-                                                <TextBlock  Text="&#xE904;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
-                                            <Button  Width="22"  Height="22"  Style="{StaticResource menuButtonVigaVerti}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Reemplazar Todo" Click="ReplaceAllButton_Click">
-                                                <TextBlock  Text="&#xE905;" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource ColoUndoRedoActive}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
 
                                         </StackPanel>
 
-                                    </StackPanel>
+                                    </Grid>
+
 
                                 </Grid>
+                            </Border>
 
+                            <Border Name="ErrorLabel" Margin="0 60 228 0" Width="200" Height="55" CornerRadius="3" BorderThickness="1" BorderBrush="#BE1100" Background="#F7E4E2"  Padding="5" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top">
 
+                                <TextBlock 
+                                    Text="La expresión regular introducida no es  válida. Por favor, revisa tu entrada." 
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Center" 
+                                    TextWrapping="Wrap" 
+                                    TextAlignment="Justify" 
+                                    RenderOptions.ClearTypeHint="Enabled"
+                                    FontSize="12"/>
+                            </Border>
+
+                            <Grid Name="LabelColumFile" Margin="0 0 0 0" Width="250" Height="16"   Background="{DynamicResource ScrollBarTrackFillPointerOver}"   Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+
+                                <Button Name="ErrorButton" Style="{StaticResource menuButtonVigaVerti}" Width="200" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="40 0 0 0" Click="ErrorButton_Click">
+                                    <StackPanel Orientation="Horizontal" Margin="10 0 10 0" HorizontalAlignment="Left">
+                                        <!-- Ícono como texto -->
+                                        <TextBlock Name="ErrorIcon" FontSize="14" FontFamily="{DynamicResource SegoeFluentIcons}" VerticalAlignment="Center" HorizontalAlignment="Left"  Foreground="{DynamicResource ColorW11Verde}" Text="&#xEC61;" Margin="0,0,5,0" />
+
+                                        <!-- Texto que muestra la cantidad de errores -->
+                                        <TextBlock Name="ErrorText" FontSize="12" Text="Errores: 0" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Button>
                             </Grid>
+
+                            <Grid Name="LabelColumFile1" Margin="0 0 0 0" Width="180" Height="16"   Background="{DynamicResource ScrollBarTrackFillPointerOver}"   Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+
+                                <Button  Style="{StaticResource menuButtonVigaVerti}" Width="180" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="0 0 0 0" >
+                                    <StackPanel Orientation="Horizontal" Margin="20 0 10 0" HorizontalAlignment="Left">
+                                        <!-- Texto que muestra la cantidad de errores -->
+                                        <TextBlock x:Name="LabelLinCol" FontSize="11" Text="Errores: 0" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                        </Grid>
+
+                        <!-- GridSplitter para ajustar el tamaño de las filas -->
+                        <GridSplitter 
+                            Grid.Row="1" 
+                            Height="5" 
+                            HorizontalAlignment="Stretch" 
+                            ResizeDirection="Rows">
+                            <GridSplitter.Style>
+                                <Style TargetType="{x:Type GridSplitter}">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ColorContextMouseOver}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </GridSplitter.Style>
+                        </GridSplitter>
+                  
+
+
+                        <Border Name="GridErrorPanel"  Grid.Row="2" Visibility="Visible"  BorderThickness="0 1 0 0" Background="{DynamicResource EditorFillColor}" BorderBrush="{DynamicResource ColorLineTools}">
+                            <DataGrid 
+                                Name="ErrorList"
+                                Grid.Row="1" 
+                                AutoGenerateColumns="False"
+                                SelectionMode="Single"
+                                IsReadOnly="True"
+                                FontSize="13"
+                                Margin="10 0 0 5"
+                                Foreground="{DynamicResource ColorContextText}"
+                                RowStyle="{DynamicResource DataGridRowStyle1}" 
+                                ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" 
+                                CellStyle="{DynamicResource DataGridCellStyle1}" 
+                                Style="{DynamicResource DataGridStyle1}"
+                                MouseDoubleClick="ErrorList_MouseDoubleClick"
+                                VerticalScrollBarVisibility="Visible"
+                                HorizontalScrollBarVisibility="Disabled"
+                                ItemsSource="{Binding SyntaxErrors}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Línea" Binding="{Binding Line}" Width="65" />
+                                    <DataGridTextColumn Header="Columna" Binding="{Binding Column}" Width="85" />
+                                    <DataGridTextColumn Header="Mensaje" Binding="{Binding Message}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                                
                         </Border>
-
-                        <Border Name="ErrorLabel" Margin="0 60 228 0" Width="200" Height="55" CornerRadius="3" BorderThickness="1" BorderBrush="#BE1100" Background="#F7E4E2"  Padding="5" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top">
-
-                            <TextBlock 
-                                Text="La expresión regular introducida no es  válida. Por favor, revisa tu entrada." 
-                                HorizontalAlignment="Left" 
-                                VerticalAlignment="Center" 
-                                TextWrapping="Wrap" 
-                                TextAlignment="Justify" 
-                                RenderOptions.ClearTypeHint="Enabled"
-                                FontSize="12"/>
-                        </Border>
-
-                        <Border Name="LabelColumFile" Margin="0 0 0 0" Width="300" Height="16" CornerRadius="0" BorderThickness="0"  Background="{DynamicResource ScrollBarTrackFillPointerOver}"  Padding="0" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-
-                            <TextBlock 
-                                Text="Lin: 30   Col: 40"
-                                Foreground="{DynamicResource ColorCustomSemiNegroG}"
-                                HorizontalAlignment="Left" 
-                                VerticalAlignment="Center" 
-                                TextAlignment="Justify" 
-                                FontSize="11"
-                                Margin="100 0 0 0"/>
-                        </Border>
-
-
-
+    
                     </Grid>
 
                     <Grid Grid.Column="1" x:Name="Panel_ConfigHP"  Width="335" Visibility="Collapsed">
@@ -692,7 +787,7 @@
                                             </Button>
                                         </Grid>
 
-                                        <ui:DynamicScrollViewer 
+                                        <ScrollViewer 
                                             Grid.Row="1"
                                             HorizontalScrollBarVisibility="Disabled"
                                             VerticalScrollBarVisibility="Visible"
@@ -840,7 +935,7 @@
                                             </StackPanel>
                                             
                                             
-                                        </ui:DynamicScrollViewer>
+                                        </ScrollViewer>
                   
                                         
                                     </Grid>
@@ -862,8 +957,10 @@
 
 
             </Grid>
+            
+            
 
-            <Border Grid.Row="2" BorderBrush="{DynamicResource ColorContextBorde}" BorderThickness="0 1 0 0">
+            <Border Grid.Row="3" Background="#006CBE"  BorderThickness="0 0 0 0">
                 <Grid   >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -877,14 +974,14 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
 
 
-                        <TextBlock Text="Version: 0.5.3" Margin="10 0 0 0" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource PanelHooverTextColor}"/>
+                        <TextBlock Text="Version: 0.5.5" Margin="10 0 0 0" FontSize="12" VerticalAlignment="Center" Foreground="#FFFFFF"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal">
 
-                        <TextBlock  Text="&#xE900;" Margin="5 0" FontFamily="{StaticResource IconHP}" Foreground="{DynamicResource PanelHooverTextColor}"  HorizontalAlignment="Left" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock  Text="&#xE900;" Margin="5 0" FontFamily="{StaticResource IconHP}" Foreground="#FFFFFF"  HorizontalAlignment="Left" FontSize="14" VerticalAlignment="Center"/>
 
-                        <TextBlock Text="HP Prime Language" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource PanelHooverTextColor}"/>
+                        <TextBlock Text="HP Prime Language" FontSize="12" VerticalAlignment="Center" Foreground="#FFFFFF"/>
                     </StackPanel>
                 </Grid>
             </Border>

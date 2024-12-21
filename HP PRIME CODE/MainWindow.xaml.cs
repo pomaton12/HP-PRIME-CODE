@@ -20,22 +20,20 @@ using System.Text.RegularExpressions;
 using ICSharpCode.AvalonEdit.Editing;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
-using HP_PRIME_CODE.Controls;
 using ICSharpCode.AvalonEdit.Rendering;
 using Microsoft.Win32;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Globalization;
-using SharpVectors.Converters;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using Wpf.Ui.Input;
-using System.Xml.Linq;
+
 using Wpf.Ui.Appearance;
 
 using HP_PRIME_CODE.Utility;
 using HP_PRIME_CODE.UtilityPrime;
+using HP_PRIME_CODE.UtilityTest;
 using HP_PRIME_CODE.ClasesAdicionales;
+using HP_PRIME_CODE.UtilityAvalonEdit;
+
 using System;
 using Wpf.Ui.Controls;
 using Button = System.Windows.Controls.Button;
@@ -44,9 +42,13 @@ using ICSharpCode.AvalonEdit.Utils;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using TextBlock = System.Windows.Controls.TextBlock;
-using System.Diagnostics.Eventing.Reader;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
+using Antlr4;
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
+using System.Collections.Generic;
+using System.ComponentModel;
+using Formatting = Newtonsoft.Json.Formatting;
 
 
 
@@ -57,503 +59,6 @@ namespace HP_PRIME_CODE
     /// </summary>
     /// 
 
-    //Espacio en condicionales
-    public class MyIndentationStrategy : IIndentationStrategy
-    {
-        private readonly string _indentation; // Define el carácter de indentación
-
-        public MyIndentationStrategy(string indentation = "\t")
-        {
-            _indentation = indentation;
-        }
-
-        public void IndentLine(TextDocument document, DocumentLine line)
-        {
-            // Texto de la línea actual
-            var lineText = document.GetText(line);
-
-            // Verifica si la línea está vacía o solo contiene espacios
-            if (string.IsNullOrWhiteSpace(lineText))
-                return;
-
-            // Calcula la indentación correcta usando Refactoring
-            var lines = document.Lines.Select(l => document.GetText(l)).ToList();
-            Refactoring.FormatLines(ref lines, _indentation);
-
-            // Obtiene la indentación calculada para la línea actual
-            var targetIndentation = lines[line.LineNumber - 1]
-                .TakeWhile(char.IsWhiteSpace)
-                .Count();
-
-            // Genera la nueva cadena de indentación
-            var newIndentation = new string('\t', targetIndentation);
-
-            // Obtiene la indentación actual de la línea
-            var currentIndentation = new string(lineText.TakeWhile(char.IsWhiteSpace).ToArray());
-
-            // Reemplaza la indentación si es diferente
-            if (newIndentation != currentIndentation)
-            {
-                document.Replace(line.Offset, currentIndentation.Length, newIndentation);
-            }
-        }
-
-        public void IndentLines(TextDocument document, int beginLine, int endLine)
-        {
-            for (int i = beginLine; i <= endLine; i++)
-            {
-                IndentLine(document, document.GetLineByNumber(i));
-            }
-        }
-    }
-
-    // Para Replegar
-    public class MyFoldingStrategy
-    {
-        private TextEditor _textEditor;
-
-        public MyFoldingStrategy(TextEditor textEditor)
-        {
-            _textEditor = textEditor;
-        }
-
-        public void UpdateFoldings(FoldingManager manager, TextDocument document)
-        {
-            // Guarda la posición del cursor
-            int caretOffset = _textEditor.CaretOffset;
-
-            var startOffsets = new Stack<int>();
-            var newFoldings = new List<NewFolding>();
-
-            // Expresiones regulares para palabras clave de PPL
-            var openingRegex = new Regex(@"^\s*(BEGIN|IFERR|IF|FOR|WHILE|REPEAT|CASE)\b", RegexOptions.IgnoreCase);
-            var closingRegex = new Regex(@"^\s*(END|UNTIL)\b", RegexOptions.IgnoreCase);
-            var singleLineCaseRegex = new Regex(@"^\s*CASE\b.*END;", RegexOptions.IgnoreCase);
-            var singleLineIfRegex = new Regex(@"^\s*IF\b.*END;", RegexOptions.IgnoreCase); // Expresión regular para IF ... END en la misma línea
-
-            for (int i = 0; i < document.LineCount; i++)
-            {
-                var line = document.GetLineByNumber(i + 1);
-                var text = document.GetText(line).Trim();
-
-                // Detectar palabras clave de apertura y cierre
-                bool lineHasOpeningKeyword = openingRegex.IsMatch(text);
-                bool lineHasClosingKeyword = closingRegex.IsMatch(text);
-                bool lineIsSingleLineCase = singleLineCaseRegex.IsMatch(text);
-                bool lineIsSingleLineIf = singleLineIfRegex.IsMatch(text); // Verificar si la línea es un IF ... END de una sola línea
-
-                // Si encontramos una línea con IF y END en la misma línea (como IF ... END;)
-                if (lineIsSingleLineIf || lineIsSingleLineCase)
-                {
-                    // Omitir el procesamiento de este bloque de una sola línea
-                    continue;
-                }
-
-                // Detectar bloque de apertura (por ejemplo, IF) sin su cierre (END) en la misma línea
-                if (lineHasOpeningKeyword && !lineHasClosingKeyword)
-                {
-                    startOffsets.Push(line.EndOffset); // Guarda el offset del bloque de inicio
-                }
-                else if (lineHasClosingKeyword && !lineHasOpeningKeyword && !lineIsSingleLineCase && !lineIsSingleLineIf)
-                {
-                    if (startOffsets.Count > 0)
-                    {
-                        int startOffset = startOffsets.Pop();
-                        newFoldings.Add(new NewFolding(startOffset, line.EndOffset));
-                    }
-                }     
-            }   
-
-            // Manejo de bloques no cerrados (opcional)
-            while (startOffsets.Count > 0)
-            {
-          
-                int startOffset = startOffsets.Pop();   
-                newFoldings.Add(new NewFolding(startOffset, document.TextLength)); // Hasta el final del documento
-            }
-            
-
-            // Ordenar los plegados por posición
-            newFoldings.Sort((a, b) => a.StartOffset.CompareTo(b.StartOffset));
-
-            // Actualizar el FoldingManager
-            manager.UpdateFoldings(newFoldings, -1);
-
-            // Restaurar la posición del cursor
-            _textEditor.CaretOffset = caretOffset;
-        }
-    }
-
-    //para autocompletado
-    public class MyCompletionData : ICompletionData
-    {
-        public MyCompletionData(string text, string commandType)
-        {
-            this.Text = text;
-            this.CommandType = commandType;
-        }
-
-        public ImageSource Image { get { return null; } }
-
-        public string Text { get; private set; }
-
-        public string CommandType { get; private set; }
-
-        public object Content
-        {
-            get
-            {
-                // Usa la clase de utilidad para generar el contenido
-                return ContentHelper.GetContent(Text, CommandType);
-            }
-        }
-
-        public object Description
-        {
-            get
-            {
-                var textEditor = new TextEditor
-                {
-                    IsReadOnly = true,
-                    Background = (Brush)Application.Current.Resources["ColorToolTip"],
-                    Foreground = (Brush)Application.Current.Resources["PanelHooverTextColor"],
-                    BorderThickness = new Thickness(0),
-                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                    VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                    Margin = new Thickness(10, 0, 10, 0),
-                    FontSize = 12,
-                    FontFamily = (FontFamily)Application.Current.Resources["Cascadia Mono Light"],
-                };
-
-                // Configurar opciones de renderizado de texto
-                TextOptions.SetTextFormattingMode(textEditor, TextFormattingMode.Ideal);
-                TextOptions.SetTextRenderingMode(textEditor, TextRenderingMode.ClearType);
-                TextOptions.SetTextHintingMode(textEditor, TextHintingMode.Fixed);
-
-                // Aplicar la sintaxis resaltada
-                LoadSyntaxHighlightingTool(textEditor);
-
-                // Obtener el texto del snippet
-                string snippetText = SnippetManager.GetSnippetText(Text, CommandType);
-
-                // Si se encontró texto, asignarlo al TextEditor
-                if (!string.IsNullOrEmpty(snippetText))
-                {
-                    textEditor.Text = snippetText;
-                    return textEditor;
-                }
-
-                return null; // Si no hay texto, retornar nulo
-            }
-        }
-
-
-        public double Priority { get {  return CommandType == "function" ? 1 : 2;  } }
-
-        public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
-        {
-            // Obtén el texto hasta la posición del cursor
-            string textUntilCaret = textArea.Document.GetText(0, completionSegment.EndOffset);
-
-            // Utiliza una expresión regular para obtener la última palabra en textUntilCaret
-            Match match = Regex.Match(textUntilCaret, @"\b(\w+)$");
-            string lastWord = match.Groups[1].Value;
-
-            // Calcula la posición de inicio de la última palabra
-            int start = completionSegment.EndOffset - lastWord.Length;
-
-            // Crea un nuevo segmento que representa la última palabra
-            ISegment segment = new TextSegment { StartOffset = start, EndOffset = completionSegment.EndOffset };
-
-            string snippet = SnippetManager.GetSnippet(this.Text);
-            //string descripcion = SnippetManager.GetDescripcion(this.Text);
-
-            if (!string.IsNullOrEmpty(snippet))
-            {
-                textArea.Document.Replace(segment, snippet);
-            }
-            else
-            {
-                textArea.Document.Replace(segment, this.Text); // Inserta el texto tal como está si no hay snippet
-            }
-
-        }
-
-        // Funciones De Editor
-        public void LoadSyntaxHighlightingTool(TextEditor actualEditor)
-        {
-            double ThemeSelec = Properties.Settings.Default.TemaSettings;
-
-            try
-            {
-                // Obtén el directorio de la aplicación
-                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-                // Define el archivo XSHD según el tema seleccionado
-                string xshdFilePath = ThemeSelec switch
-                {
-                    0 => System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL_Light.xshd"), // Tema claro
-                    1 => System.IO.Path.Combine(appDirectory, "Estilo", "HPPPL_Dark.xshd"),  // Tema oscuro
-                    _ => throw new InvalidOperationException("Tema no soportado.")
-                };
-
-                // Verifica si el archivo existe
-                if (!File.Exists(xshdFilePath))
-                {
-                    throw new FileNotFoundException($"No se encontró el archivo de estilo: {xshdFilePath}");
-                }
-
-                // Carga el archivo XSHD y aplícalo al editor
-                using (Stream s = File.OpenRead(xshdFilePath))
-                {
-                    using (XmlTextReader reader = new XmlTextReader(s))
-                    {
-                        actualEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //MessageBox.Show($"Error al cargar el resaltado de sintaxis: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        } //Carga color de texto con thema
-
-
-
-    }
-
-
-
-
-    // Pintar linea al escribir
-    public class HighlightCurrentLineBackgroundRenderer : IBackgroundRenderer
-    {
-        private readonly TextEditor _editor;
-        private readonly Canvas _minimap;
-
-        public HighlightCurrentLineBackgroundRenderer(TextEditor editor, Canvas minimap)
-        {
-            _editor = editor;
-            _minimap = minimap;
-        }
-
-        public KnownLayer Layer => KnownLayer.Selection;
-
-        public void Draw(TextView textView, DrawingContext drawingContext)
-        {
-            if (_editor.Document == null)
-                return;
-
-            textView.EnsureVisualLines();
-            var currentLine = _editor.Document.GetLineByOffset(_editor.CaretOffset);
-            double ThemeSelected = Properties.Settings.Default.TemaSettings;
-            // Determina el color del borde según el tema
-            Pen borderPen = ThemeSelected == 0
-                ? new Pen(new SolidColorBrush(Color.FromRgb(230, 230, 242)), 1) // Tema claro
-                : new Pen(new SolidColorBrush(Color.FromRgb(50, 50, 50)), 1); // Tema oscuro
-
-            borderPen.Freeze(); // Mejora el rendimiento
-
-            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, currentLine))
-            {
-                drawingContext.DrawRectangle(null, borderPen, new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height)));
-            }
-
-            // Dibuja la posición de la línea en el minimapa
-            HighlightCurrentLineInMinimap(currentLine.LineNumber - 1);
-        }
-
-        private void HighlightCurrentLineInMinimap(int currentLineIndex)
-        {
-            // Borra el rectángulo rojo anterior del minimapa
-            if (_minimap.Children.Count > 0)
-            {
-                _minimap.Children.RemoveAt(_minimap.Children.Count - 1);
-            }
-
-            // Calcula la posición de la línea actual en el minimapa
-            string[] lines = _editor.Text.Split('\n');
-            double top = (double)currentLineIndex / lines.Length * (_minimap.Height-37);
-            double ThemeSelected = Properties.Settings.Default.TemaSettings;
-            // Define el color del rectángulo en el minimapa según el tema
-            SolidColorBrush minimapBrush = ThemeSelected == 0
-                ? new SolidColorBrush(Color.FromRgb(255, 0, 0)) // Rojo claro para tema claro
-                : new SolidColorBrush(Color.FromRgb(255, 85, 85)); // Rojo oscuro para tema oscuro
-
-            // Crea un rectángulo y lo posiciona en la línea actual
-            var rect = new Rectangle
-            {
-                Fill = minimapBrush,
-                Width = 20,
-                Height = 2,
-            };
-            Canvas.SetTop(rect, top);
-            _minimap.Children.Add(rect);
-        }
-    }
-
-
-    //Dibujar alcance de Bloques
-    public class BlockScopeRenderer : IBackgroundRenderer
-    {
-        private readonly TextEditor _textEditor;
-        private readonly BlockDetectorGeneral _blockDetector;
-        private readonly Brush _guideBrush;
-        private readonly Pen _guidePen;
-
-        public BlockScopeRenderer(TextEditor textEditor)
-        {
-            _textEditor = textEditor;
-            _blockDetector = new BlockDetectorGeneral(textEditor);
-
-            // Configuración de apariencia de las guías
-            _guideBrush = new SolidColorBrush(Color.FromArgb(80, 0, 255, 0)); // Verde translúcido
-            _guideBrush.Freeze();
-            _guidePen = Properties.Settings.Default.TemaSettings == 0
-                ? new Pen(new SolidColorBrush(Color.FromRgb(211, 211, 211)), 1) // Azul oscuro para el borde en tema claro
-                : new Pen(new SolidColorBrush(Color.FromRgb(64, 64, 64)), 1); // Naranja oscuro para el borde en tema oscuro;
-
-            _guidePen.Freeze();
-
-            // Redibujar la capa cuando cambien las líneas o el texto
-            _textEditor.TextArea.TextView.ScrollOffsetChanged += (s, e) => _textEditor.TextArea.TextView.InvalidateLayer(Layer);
-            if (_textEditor.Document != null)
-            {
-                _textEditor.Document.Changed += Document_Changed;
-            }
-        }
-
-        public KnownLayer Layer => KnownLayer.Background;
-
-        public void Draw(TextView textView, DrawingContext drawingContext)
-        {
-            textView.EnsureVisualLines();
-
-            var document = _textEditor.Document;
-            if (document == null) return;
-
-            // Obtener todos los bloques
-            var allBlocks = _blockDetector.GetAllBlocks(document);
-            if (!allBlocks.Any()) return;
-
-            foreach (var block in allBlocks)
-            {
-                var (startLine, endLine) = block;
-
-                // Dibujar guías de alcance para cada línea visible dentro del bloque
-                foreach (var visualLine in textView.VisualLines)
-                {
-                    int lineNumber = visualLine.FirstDocumentLine.LineNumber;
-
-                    if (lineNumber > startLine && lineNumber < endLine)
-                    {
-                        // Calcular la posición X de la guía de indentación
-                        int indentationLevel = GetIndentationLevel(document, startLine);
-                        double guideX = Math.Round(textView.WideSpaceWidth * indentationLevel) - textView.ScrollOffset.X + 0.5;
-
-                        // Dibujar la guía de alcance del bloque
-                        drawingContext.DrawLine(
-                            _guidePen,
-                            new Point(guideX, visualLine.VisualTop - textView.ScrollOffset.Y),
-                            new Point(guideX, visualLine.VisualTop + visualLine.Height - textView.ScrollOffset.Y));
-                    }
-                }
-            }
-        }
-
-        private void Document_Changed(object sender, DocumentChangeEventArgs e)
-        {
-            // Invalida la capa para forzar el redibujado después de un cambio
-            _textEditor.TextArea.TextView.InvalidateLayer(Layer);
-        }
-
-        /// <summary>
-        /// Obtiene el nivel de indentación de una línea.
-        /// </summary>
-        private int GetIndentationLevel(TextDocument document, int lineNumber)
-        {
-            if (lineNumber < 1 || lineNumber > document.LineCount)
-                return 0;
-
-            string line = document.GetText(document.GetLineByNumber(lineNumber));
-
-            // Contar los espacios iniciales y calcular el nivel de indentación
-            int spaceCount = line.TakeWhile(char.IsWhiteSpace).Count();
-            int indentationSize = _textEditor.Options.IndentationSize; // Generalmente 4
-            return spaceCount;
-        }
-
-    }
-
-
-    //Pintado de bloque rojo
-    public class BlockHighlighter : IBackgroundRenderer
-    {
-        private readonly TextEditor _textEditor;
-        private readonly BlockDetector _blockDetector;
-        private Brush _highlightBrush;
-
-        public BlockHighlighter(TextEditor textEditor)
-        {
-            _textEditor = textEditor;
-            _blockDetector = new BlockDetector(textEditor);
-        }
-
-        public KnownLayer Layer => KnownLayer.Background;
-
-        public void Draw(TextView textView, DrawingContext drawingContext)
-        {
-            textView.EnsureVisualLines();
-
-            var document = _textEditor.Document;
-            if (document == null) return;
-
-            var activeBlock = _blockDetector.GetActiveBlock(document);
-            if (activeBlock == null) return;
-
-            var (startLine, endLine) = activeBlock.Value;
-
-            // Verificar si el bloque está en una sola línea (IF ... END en una misma línea)
-            if (startLine == endLine)
-            {
-                // Omitir el resaltado para este bloque, pero no detener el resto del proceso
-                //continue; 
-            }
-
-            // Obtener la indentación del bloque
-            int blockIndentation = GetIndentationLevel(document, startLine);
-
-            // Dibujar el fondo para las líneas dentro del bloque activo
-            foreach (var visualLine in textView.VisualLines)
-            {
-                var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-
-                // Si la línea está dentro del bloque activo y no es la línea de apertura ni de cierre
-                if (lineNumber > startLine && lineNumber < endLine)
-                {
-                    // Calcular la posición X de la guía de indentación solo para las líneas dentro del bloque
-                    double guideX = Math.Round(textView.WideSpaceWidth * blockIndentation * _textEditor.Options.IndentationSize) - textView.ScrollOffset.X + 0.5;
-
-                    // Dibujar la guía de indentación activa
-                    drawingContext.DrawLine(new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#80FF5555")), 1),
-                        new Point(guideX, visualLine.VisualTop - textView.ScrollOffset.Y),
-                        new Point(guideX, visualLine.VisualTop + visualLine.Height - textView.ScrollOffset.Y));
-                }
-            }
-        }
-
-        // Función auxiliar para obtener el nivel de indentación de una línea
-        private int GetIndentationLevel(TextDocument document, int lineNumber)
-        {
-            if (lineNumber < 1 || lineNumber > document.LineCount)
-                return 0;
-
-            string line = document.GetText(document.GetLineByNumber(lineNumber));
-            return line.TakeWhile(char.IsWhiteSpace).Count() / _textEditor.Options.IndentationSize;
-        }
-
-  
-    }
 
 
 
@@ -591,6 +96,8 @@ namespace HP_PRIME_CODE
 
             var wordToHighlight = new Regex("\\b" + escapedWordToHighlight + "\\b", RegexOptions.IgnoreCase);
 
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+
             foreach (VisualLine line in textView.VisualLines)
             {
                 int lineStartOffset = line.FirstDocumentLine.Offset;
@@ -601,14 +108,13 @@ namespace HP_PRIME_CODE
                     int end = start + m.Length;
                     foreach (Rect r in BackgroundGeometryBuilder.GetRectsForSegment(textView, new TextSegment { StartOffset = start, EndOffset = end }))
                     {
-                        drawingContext.DrawRectangle(Brushes.LightGreen, null, new Rect(r.Location, new Size(r.Width, r.Height - 1)));
+                        drawingContext.DrawRectangle(ThemeSelected == 0 ? Brushes.LightGreen : Brushes.DarkGreen, null, new Rect(r.Location, new Size(r.Width, r.Height - 1)));
                     }
                 }
             }
         }
 
     }
-
     // ==== nuevo 2024 II 
     // para manejo de llaves cieeres y aperturas
 
@@ -877,6 +383,539 @@ namespace HP_PRIME_CODE
     }
 
 
+    // USAR ANTLR prueba test 
+    public class SyntaxErrorListener : BaseErrorListener
+    {
+        public List<SyntaxError> Errors { get; } = new List<SyntaxError>();
+
+        public override void SyntaxError(
+            TextWriter output,
+            IRecognizer recognizer,
+            IToken offendingSymbol,
+            int line,
+            int charPositionInLine,
+            string msg,
+            RecognitionException e)
+        {
+            Errors.Add(new SyntaxError
+            {
+                Line = line,
+                Column = charPositionInLine,
+                Message = msg
+            });
+        }
+    }
+
+    public class SyntaxError
+    {
+        public int Line { get; set; }
+        public int Column { get; set; }
+        public string Message { get; set; }
+        public int StartOffset { get; set; } // Add this property
+        public int EndOffset { get; set; }   // Add this property
+    }
+
+    // Para dibujar error rojo 
+    public class TextMarkerService : DocumentColorizingTransformer, IBackgroundRenderer, ITextMarkerService
+    {
+        TextSegmentCollection<TextMarker> markers;
+        TextView textView;
+
+        public TextMarkerService(TextView textView)
+        {
+            if (textView == null)
+                throw new ArgumentNullException(nameof(textView));
+            this.textView = textView;
+            textView.DocumentChanged += OnDocumentChanged;
+            OnDocumentChanged(null, null);
+        }
+
+        void OnDocumentChanged(object sender, EventArgs e)
+        {
+            if (textView.Document != null)
+                markers = new TextSegmentCollection<TextMarker>(textView.Document);
+            else
+                markers = null;
+        }
+
+        #region ITextMarkerService
+        public ITextMarker Create(int startOffset, int length)
+        {
+            if (markers == null)
+                throw new InvalidOperationException("Cannot create a marker when not attached to a document");
+
+            int textLength = textView.Document.TextLength;
+            if (startOffset < 0 || startOffset > textLength)
+                throw new ArgumentOutOfRangeException(nameof(startOffset), startOffset, "Value must be between 0 and " + textLength);
+            if (length < 0 || startOffset + length > textLength)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "length must not be negative and startOffset+length must not be after the end of the document");
+
+            TextMarker m = new TextMarker(this, startOffset, length);
+            markers.Add(m);
+            // no need to mark segment for redraw: the text marker is invisible until a property is set
+            return m;
+        }
+
+        public IEnumerable<ITextMarker> GetMarkersAtOffset(int offset)
+        {
+            if (markers == null)
+                return Enumerable.Empty<ITextMarker>();
+            else
+                return markers.FindSegmentsContaining(offset);
+        }
+
+        public IEnumerable<ITextMarker> TextMarkers
+        {
+            get { return markers ?? Enumerable.Empty<ITextMarker>(); }
+        }
+
+        public void RemoveAll(Predicate<ITextMarker> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            if (markers != null)
+            {
+                foreach (TextMarker m in markers.ToArray())
+                {
+                    if (predicate(m))
+                        Remove(m);
+                }
+            }
+        }
+
+        public void Remove(ITextMarker marker)
+        {
+            if (marker == null)
+                throw new ArgumentNullException(nameof(marker));
+            TextMarker m = marker as TextMarker;
+            if (markers != null && markers.Remove(m))
+            {
+                Redraw(m);
+                m.OnDeleted();
+            }
+        }
+
+        /// <summary>
+        /// Redraws the specified text segment.
+        /// </summary>
+        internal void Redraw(ISegment segment)
+        {
+            textView.Redraw(segment, DispatcherPriority.Normal);
+            RedrawRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event EventHandler RedrawRequested;
+        #endregion
+
+        #region DocumentColorizingTransformer
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            if (markers == null)
+                return;
+            int lineStart = line.Offset;
+            int lineEnd = lineStart + line.Length;
+            foreach (TextMarker marker in markers.FindOverlappingSegments(lineStart, line.Length))
+            {
+                Brush foregroundBrush = null;
+                if (marker.ForegroundColor != null)
+                {
+                    foregroundBrush = new SolidColorBrush(marker.ForegroundColor.Value);
+                    foregroundBrush.Freeze();
+                }
+                ChangeLinePart(
+                    Math.Max(marker.StartOffset, lineStart),
+                    Math.Min(marker.EndOffset, lineEnd),
+                    element => {
+                        if (foregroundBrush != null)
+                        {
+                            element.TextRunProperties.SetForegroundBrush(foregroundBrush);
+                        }
+                        Typeface tf = element.TextRunProperties.Typeface;
+                        element.TextRunProperties.SetTypeface(new Typeface(
+                            tf.FontFamily,
+                            marker.FontStyle ?? tf.Style,
+                            marker.FontWeight ?? tf.Weight,
+                            tf.Stretch
+                        ));
+                    }
+                );
+            }
+        }
+        #endregion
+
+        #region IBackgroundRenderer
+        public KnownLayer Layer
+        {
+            get
+            {
+                // draw behind selection
+                return KnownLayer.Selection;
+            }
+        }
+
+        public void Draw(ICSharpCode.AvalonEdit.Rendering.TextView textView, DrawingContext drawingContext)
+        {
+            if (textView == null)
+                throw new ArgumentNullException(nameof(textView));
+            if (drawingContext == null)
+                throw new ArgumentNullException(nameof(drawingContext));
+            if (markers == null || !textView.VisualLinesValid)
+                return;
+            var visualLines = textView.VisualLines;
+            if (visualLines.Count == 0)
+                return;
+            int viewStart = visualLines.First().FirstDocumentLine.Offset;
+            int viewEnd = visualLines.Last().LastDocumentLine.EndOffset;
+            foreach (TextMarker marker in markers.FindOverlappingSegments(viewStart, viewEnd - viewStart))
+            {
+                if (marker.BackgroundColor != null)
+                {
+                    BackgroundGeometryBuilder geoBuilder = new BackgroundGeometryBuilder();
+                    geoBuilder.AlignToWholePixels = true;
+                    geoBuilder.CornerRadius = 3;
+                    geoBuilder.AddSegment(textView, marker);
+                    Geometry geometry = geoBuilder.CreateGeometry();
+                    if (geometry != null)
+                    {
+                        Color color = marker.BackgroundColor.Value;
+                        SolidColorBrush brush = new SolidColorBrush(color);
+                        brush.Freeze();
+                        drawingContext.DrawGeometry(brush, null, geometry);
+                    }
+                }
+                var underlineMarkerTypes = TextMarkerTypes.SquigglyUnderline | TextMarkerTypes.NormalUnderline | TextMarkerTypes.DottedUnderline;
+                if ((marker.MarkerTypes & underlineMarkerTypes) != 0)
+                {
+                    foreach (Rect r in BackgroundGeometryBuilder.GetRectsForSegment(textView, marker))
+                    {
+                        Point startPoint = r.BottomLeft;
+                        Point endPoint = r.BottomRight;
+
+                        Brush usedBrush = new SolidColorBrush(marker.MarkerColor);
+                        usedBrush.Freeze();
+                        if ((marker.MarkerTypes & TextMarkerTypes.SquigglyUnderline) != 0)
+                        {
+                            double offset = 2.5;
+
+                            int count = Math.Max((int)((endPoint.X - startPoint.X) / offset) + 1, 4);
+
+                            StreamGeometry geometry = new StreamGeometry();
+
+                            using (StreamGeometryContext ctx = geometry.Open())
+                            {
+                                ctx.BeginFigure(startPoint, false, false);
+                                ctx.PolyLineTo(CreatePoints(startPoint, endPoint, offset, count).ToArray(), true, false);
+                            }
+
+                            geometry.Freeze();
+
+                            Pen usedPen = new Pen(usedBrush, 1);
+                            usedPen.Freeze();
+                            drawingContext.DrawGeometry(Brushes.Transparent, usedPen, geometry);
+                        }
+                        if ((marker.MarkerTypes & TextMarkerTypes.NormalUnderline) != 0)
+                        {
+                            Pen usedPen = new Pen(usedBrush, 1);
+                            usedPen.Freeze();
+                            drawingContext.DrawLine(usedPen, startPoint, endPoint);
+                        }
+                        if ((marker.MarkerTypes & TextMarkerTypes.DottedUnderline) != 0)
+                        {
+                            Pen usedPen = new Pen(usedBrush, 1);
+                            usedPen.DashStyle = DashStyles.Dot;
+                            usedPen.Freeze();
+                            drawingContext.DrawLine(usedPen, startPoint, endPoint);
+                        }
+                    }
+                }
+            }
+        }
+
+        IEnumerable<Point> CreatePoints(Point start, Point end, double offset, int count)
+        {
+            for (int i = 0; i < count; i++)
+                yield return new Point(start.X + i * offset, start.Y - ((i + 1) % 2 == 0 ? offset : 0));
+        }
+        #endregion
+    }
+
+    sealed class TextMarker : TextSegment, ITextMarker
+    {
+        readonly TextMarkerService service;
+
+        public TextMarker(TextMarkerService service, int startOffset, int length)
+        {
+            if (service == null)
+                throw new ArgumentNullException(nameof(service));
+            this.service = service;
+            this.StartOffset = startOffset;
+            this.Length = length;
+            this.markerTypes = TextMarkerTypes.None;
+        }
+
+        public event EventHandler Deleted;
+
+        public bool IsDeleted
+        {
+            get { return !this.IsConnectedToCollection; }
+        }
+
+        public void Delete()
+        {
+            service.Remove(this);
+        }
+
+        internal void OnDeleted()
+        {
+            Deleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        void Redraw()
+        {
+            service.Redraw(this);
+        }
+
+        Color? backgroundColor;
+
+        public Color? BackgroundColor
+        {
+            get { return backgroundColor; }
+            set
+            {
+                if (backgroundColor != value)
+                {
+                    backgroundColor = value;
+                    Redraw();
+                }
+            }
+        }
+
+        Color? foregroundColor;
+
+        public Color? ForegroundColor
+        {
+            get { return foregroundColor; }
+            set
+            {
+                if (foregroundColor != value)
+                {
+                    foregroundColor = value;
+                    Redraw();
+                }
+            }
+        }
+
+        FontWeight? fontWeight;
+
+        public FontWeight? FontWeight
+        {
+            get { return fontWeight; }
+            set
+            {
+                if (fontWeight != value)
+                {
+                    fontWeight = value;
+                    Redraw();
+                }
+            }
+        }
+
+        FontStyle? fontStyle;
+
+        public FontStyle? FontStyle
+        {
+            get { return fontStyle; }
+            set
+            {
+                if (fontStyle != value)
+                {
+                    fontStyle = value;
+                    Redraw();
+                }
+            }
+        }
+
+        public object Tag { get; set; }
+
+        TextMarkerTypes markerTypes;
+
+        public TextMarkerTypes MarkerTypes
+        {
+            get { return markerTypes; }
+            set
+            {
+                if (markerTypes != value)
+                {
+                    markerTypes = value;
+                    Redraw();
+                }
+            }
+        }
+
+        Color markerColor;
+
+        public Color MarkerColor
+        {
+            get { return markerColor; }
+            set
+            {
+                if (markerColor != value)
+                {
+                    markerColor = value;
+                    Redraw();
+                }
+            }
+        }
+
+        public object ToolTip { get; set; }
+    }
+
+    public interface ITextMarker
+    {
+        /// <summary>
+        /// Gets the start offset of the marked text region.
+        /// </summary>
+        int StartOffset { get; }
+
+        /// <summary>
+        /// Gets the end offset of the marked text region.
+        /// </summary>
+        int EndOffset { get; }
+
+        /// <summary>
+        /// Gets the length of the marked region.
+        /// </summary>
+        int Length { get; }
+
+        /// <summary>
+        /// Deletes the text marker.
+        /// </summary>
+        void Delete();
+
+        /// <summary>
+        /// Gets whether the text marker was deleted.
+        /// </summary>
+        bool IsDeleted { get; }
+
+        /// <summary>
+        /// Event that occurs when the text marker is deleted.
+        /// </summary>
+        event EventHandler Deleted;
+
+        /// <summary>
+        /// Gets/Sets the background color.
+        /// </summary>
+        Color? BackgroundColor { get; set; }
+
+        /// <summary>
+        /// Gets/Sets the foreground color.
+        /// </summary>
+        Color? ForegroundColor { get; set; }
+
+        /// <summary>
+        /// Gets/Sets the font weight.
+        /// </summary>
+        FontWeight? FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets/Sets the font style.
+        /// </summary>
+        FontStyle? FontStyle { get; set; }
+
+        /// <summary>
+        /// Gets/Sets the type of the marker. Use TextMarkerType.None for normal markers.
+        /// </summary>
+        TextMarkerTypes MarkerTypes { get; set; }
+
+        /// <summary>
+        /// Gets/Sets the color of the marker.
+        /// </summary>
+        Color MarkerColor { get; set; }
+
+        /// <summary>
+        /// Gets/Sets an object with additional data for this text marker.
+        /// </summary>
+        object Tag { get; set; }
+
+        /// <summary>
+        /// Gets/Sets an object that will be displayed as tooltip in the text editor.
+        /// </summary>
+        object ToolTip { get; set; }
+    }
+
+    [Flags]
+    public enum TextMarkerTypes
+    {
+        /// <summary>
+        /// Use no marker
+        /// </summary>
+        None = 0x0000,
+        /// <summary>
+        /// Use squiggly underline marker
+        /// </summary>
+        SquigglyUnderline = 0x001,
+        /// <summary>
+        /// Normal underline.
+        /// </summary>
+        NormalUnderline = 0x002,
+        /// <summary>
+        /// Dotted underline.
+        /// </summary>
+        DottedUnderline = 0x004,
+
+        /// <summary>
+        /// Horizontal line in the scroll bar.
+        /// </summary>
+        LineInScrollBar = 0x0100,
+        /// <summary>
+        /// Small triangle in the scroll bar, pointing to the right.
+        /// </summary>
+        ScrollBarRightTriangle = 0x0400,
+        /// <summary>
+        /// Small triangle in the scroll bar, pointing to the left.
+        /// </summary>
+        ScrollBarLeftTriangle = 0x0800,
+        /// <summary>
+        /// Small circle in the scroll bar.
+        /// </summary>
+        CircleInScrollBar = 0x1000
+    }
+
+    public interface ITextMarkerService
+    {
+        /// <summary>
+        /// Creates a new text marker. The text marker will be invisible at first,
+        /// you need to set one of the Color properties to make it visible.
+        /// </summary>
+        ITextMarker Create(int startOffset, int length);
+
+        /// <summary>
+        /// Gets the list of text markers.
+        /// </summary>
+        IEnumerable<ITextMarker> TextMarkers { get; }
+
+        /// <summary>
+        /// Removes the specified text marker.
+        /// </summary>
+        void Remove(ITextMarker marker);
+
+        /// <summary>
+        /// Removes all text markers that match the condition.
+        /// </summary>
+        void RemoveAll(Predicate<ITextMarker> predicate);
+
+        /// <summary>
+        /// Finds all text markers at the specified offset.
+        /// </summary>
+        IEnumerable<ITextMarker> GetMarkersAtOffset(int offset);
+    }
+
+
+
+
+
+
+
 
     public partial class MainWindow 
     {
@@ -902,6 +941,12 @@ namespace HP_PRIME_CODE
         //private double ThemeSelected = Properties.Settings.Default.TemaSettings; // 0 = ligth   1 = Dark   // O defaulti install
         private double IdiomaSelected = Properties.Settings.Default.IdiomaSettings; // 0 = esp   1 = ingles  // O defaulti install
 
+        //Errores de syntax
+        // Temporizador global para todos los editores
+        private DispatcherTimer debounceTimer;
+
+        // replegar
+        private MyFoldingStrategy _foldingStrategy;
 
         public MainWindow()
         {
@@ -933,8 +978,17 @@ namespace HP_PRIME_CODE
             _highlightingTimer.Tick += HighlightingTimer_Tick;
             _highlightingTimer.Start();
 
-        }
+            //[5] Detector de Syntax
+            //  lista de errores
+            // Inicializa el temporizador global
+            debounceTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(1000) // Tiempo de debounce
+            };
+            debounceTimer.Tick += DebounceTimer_Tick; // Evento que se dispara al finalizar el tiempo
 
+        }
+        
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             try // Cargamos el CSV 
@@ -1089,38 +1143,48 @@ namespace HP_PRIME_CODE
         }
 
 
-        //<!-- Toogle para mostrar Barra de Herramientas  -->
-        private void buttonToogleHerraCheck(object sender, RoutedEventArgs e)
-        {
-            // Cambia el texto del TextBlock al activarse (Checked)
-            if (sender is ToggleButton toggleButton)
-            {
-                
-                toggleButton.ToolTip = "Mostrar Barra de Herramientas";
-                // Busca el TextBlock dentro del contenido del ToggleButton
-                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
-                {
-                    textBlock.Text = "\ue900"; // Nuevo icono o texto (Ejemplo: cambiar el icono)
-                }
 
-                BH_Inicio.Visibility = Visibility.Collapsed;
+        // PARA REPLEGADOS
+        private void FoldAll_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            // Accedemos al FoldingManager a través del TextEditor
+            var foldingManager = editor.TextArea.GetService(typeof(FoldingManager)) as FoldingManager;
+
+            if (foldingManager != null)
+            {
+                // Iteramos a través de todas las secciones de plegado
+                foreach (var folding in foldingManager.AllFoldings)
+                {
+                    folding.IsFolded = true; // Plegar cada sección
+                }
+            }
+
+        }
+
+        private void UnfoldAll_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            // Accedemos al FoldingManager a través del TextEditor
+            var foldingManager = editor.TextArea.GetService(typeof(FoldingManager)) as FoldingManager;
+
+            if (foldingManager != null)
+            {
+                // Iteramos a través de todas las secciones de plegado
+                foreach (var folding in foldingManager.AllFoldings)
+                {
+                    folding.IsFolded = false; // Expandir cada sección
+                }
             }
         }
 
-        private void buttonToogleHerraUncheck(object sender, RoutedEventArgs e)
-        {
-            // Cambia el texto del TextBlock al desactivarse (Unchecked)
-            if (sender is ToggleButton toggleButton)
-            {
-                toggleButton.ToolTip = "Ocultar Barra de Herramientas";
-                // Busca el TextBlock dentro del contenido del ToggleButton
-                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
-                {
-                    textBlock.Text = "\ue901"; // Vuelve al texto original
-                }
-                BH_Inicio.Visibility = Visibility.Visible;
-            }
-        }
+
+
+
 
         //=========================================================================================
         //
@@ -1151,6 +1215,41 @@ namespace HP_PRIME_CODE
         //                            PARA BARRA DE HERRAMIENTAS 
         //
         //=========================================================================================
+
+        //<!-- Toogle para mostrar Barra de Herramientas  -->
+        private void buttonToogleHerraCheck(object sender, RoutedEventArgs e)
+        {
+            // Cambia el texto del TextBlock al activarse (Checked)
+            if (sender is ToggleButton toggleButton)
+            {
+                
+                toggleButton.ToolTip = "Mostrar Barra de Herramientas";
+                // Busca el TextBlock dentro del contenido del ToggleButton
+                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
+                {
+                    textBlock.Text = "\ue903"; // Nuevo icono o texto (Ejemplo: cambiar el icono)
+                }
+
+                BH_Inicio.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void buttonToogleHerraUncheck(object sender, RoutedEventArgs e)
+        {
+            // Cambia el texto del TextBlock al desactivarse (Unchecked)
+            if (sender is ToggleButton toggleButton)
+            {
+                toggleButton.ToolTip = "Ocultar Barra de Herramientas";
+                // Busca el TextBlock dentro del contenido del ToggleButton
+                if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
+                {
+                    textBlock.Text = "\ue902"; // Vuelve al texto original
+                }
+                BH_Inicio.Visibility = Visibility.Visible;
+            }
+        }
+
+
 
         // BOTONES HERRAMIENTAS ========================================
 
@@ -1229,19 +1328,7 @@ namespace HP_PRIME_CODE
         }
 
         // Método para obtener el TextEditor de la pestaña activa
-        private TextEditor GetActiveTextEditor()
-        {
-            // Obtén la pestaña activa
-            TabItem activeTab = tabControl.SelectedItem as TabItem;
 
-            // Si hay una pestaña activa, obtiene el TextEditor
-            if (activeTab != null)
-            {
-                return activeTab.Content as TextEditor;
-            }
-
-            return null; // Si no hay una pestaña activa, devuelve null
-        }
 
         private void BorrarButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1322,8 +1409,8 @@ namespace HP_PRIME_CODE
                     // Obtén la palabra actualmente seleccionada
                     string selectedText = editor.SelectedText;
 
-                    // Si no hay texto seleccionado, borra la palabra a resaltar
-                    if (string.IsNullOrWhiteSpace(selectedText))
+                    // Si no hay texto seleccionado o no es válido, borra la palabra a resaltar
+                    if (string.IsNullOrWhiteSpace(selectedText) || !IsValidWord(selectedText))
                     {
                         _wordHighlighter.SetWordToHighlight(null);
                         // Borra los resaltados del minimapa
@@ -1348,6 +1435,37 @@ namespace HP_PRIME_CODE
                 }
             }
         }
+
+
+        //Validar que tipos ignorar
+        private bool IsValidWord(string word)
+        {
+            // Palabras reservadas que no queremos resaltar
+            HashSet<string> reservedWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "END", "IF", "ELSE", "FOR", "WHILE", // Agrega las palabras que quieras excluir
+            };
+
+            // Verificar si es un número
+            if (int.TryParse(word, out _))
+                return false;
+
+            // Verificar si es una palabra reservada
+            if (reservedWords.Contains(word))
+                return false;
+
+            // Verificar si es un símbolo o carácter especial
+            if (word.Length == 1 && !char.IsLetter(word[0]))
+                return false;
+
+            // Verificar si es una sola letra
+            if (word.Length == 1)
+                return false;
+
+            // Si pasa todas las condiciones, es válida
+            return true;
+        }
+
 
         private void ClearWordHighlighter(TextEditor editor)
         {
@@ -1384,7 +1502,7 @@ namespace HP_PRIME_CODE
                             Height = 2,
                         };
 
-                        Canvas.SetTop(rect, (double)i / lines.Length * (minimap.Height-37));
+                        Canvas.SetTop(rect, (double)i / lines.Length * (minimap.Height - 37));
                         minimap.Children.Add(rect);
                     }
                 }
@@ -1452,7 +1570,7 @@ namespace HP_PRIME_CODE
             {
                 editor.TextArea.TextView.BackgroundRenderers.Remove(existingRenderer);
             }
-            
+
             var renderer = new HighlightCurrentLineBackgroundRenderer(editor, minimap);
             editor.TextArea.TextView.BackgroundRenderers.Add(renderer);
         }
@@ -1654,7 +1772,7 @@ namespace HP_PRIME_CODE
             currentSearchText = MiTextBoxBuscar.Text;
 
             // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = getActiveTextEditor();
+            TextEditor editor = GetActiveTextEditor();
 
             // Actualiza la búsqueda en la pestaña activa
             UpdateSearch(editor);
@@ -1918,75 +2036,6 @@ namespace HP_PRIME_CODE
             SearchTextBox_TextChanged(sender, null);
         }
 
-        // Método para obtener el TextEditor de la pestaña activa
-        private TextEditor getActiveTextEditor()
-        {
-            // Obtén la pestaña activa
-            TabItem activeTab = tabControl.SelectedItem as TabItem;
-
-            // Si hay una pestaña activa, obtiene el TextEditor
-            if (activeTab != null)
-            {
-                return activeTab.Content as TextEditor;
-            }
-
-            return null; // Si no hay una pestaña activa, devuelve null
-        }
-
-        // Suscribirse al evento SelectionChanged del TabControl
-        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-
-            // Guarda la posición actual del caret en la pestaña activa antes de cambiar de pestaña
-            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TabItem previousTab && previousTab.Tag is TabFileData previousFileData)
-            {
-
-
-
-                // Obtén el TextEditor de la pestaña anterior
-                if (previousTab.Content is TextEditor previousEditor)
-                {
-
-                    // Limpia el resaltado en la pestaña anterior
-                    ClearWordHighlighter(previousEditor);
-
-                    // Actualiza la posición del caret en los datos de la pestaña
-                    previousFileData.CaretLine = previousEditor.TextArea.Caret.Line;
-                    previousFileData.CaretColumn = previousEditor.TextArea.Caret.Column;
-                }
-            }
-
-            // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = GetActiveTextEditor();
-
-            if (editor != null && tabControl.SelectedItem is TabItem selectedTab && selectedTab.Tag is TabFileData fileData)
-            {
-                // Actualizar la búsqueda al cambiar de pestaña
-                UpdateSearch(editor);
-
-                
-
-                // Restaurar la posición del caret y el scroll para la pestaña activa
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    // Asegúrate de que los datos corresponden a la pestaña activa
-                    if (tabControl.SelectedItem == selectedTab)
-                    {
-                        editor.TextArea.Caret.Line = fileData.CaretLine;
-                        editor.TextArea.Caret.Column = fileData.CaretColumn;
-
-                        // Desplázate a la posición correcta
-                        editor.ScrollTo(fileData.CaretLine, fileData.CaretColumn);
-
-
-                    }
-                }), System.Windows.Threading.DispatcherPriority.ContextIdle);
-
-                _wordHighlighter = new WordHighlighter(editor);
-                editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
-            }
-        }
 
 
         // para panel reemplazar
@@ -2496,7 +2545,10 @@ namespace HP_PRIME_CODE
 
         private void Editor_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            CloseTooltip();
+            if (tooltipPopup != null && tooltipPopup.IsOpen)
+            {
+                tooltipPopup.IsOpen = false;
+            }
         }
 
         // Método para ocultar el tooltip
@@ -2508,6 +2560,80 @@ namespace HP_PRIME_CODE
             }
         }
 
+        // Método para obtener el TextEditor de la pestaña activa
+        private TextEditor GetActiveTextEditor()
+        {
+            // Obtén la pestaña activa
+            TabItem activeTab = tabControl.SelectedItem as TabItem;
+
+            // Si hay una pestaña activa, obtiene el TextEditor
+            if (activeTab != null)
+            {
+                return activeTab.Content as TextEditor;
+            }
+
+            return null; // Si no hay una pestaña activa, devuelve null
+        }
+
+        //===========================================================
+        //   evento SelectionChanged del TabControl  SELECCION DE PESTAÑAS
+        //===========================================================
+        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+
+            // Guarda la posición actual del caret en la pestaña activa antes de cambiar de pestaña
+            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TabItem previousTab && previousTab.Tag is TabFileData previousFileData)
+            {
+
+
+
+                // Obtén el TextEditor de la pestaña anterior
+                if (previousTab.Content is TextEditor previousEditor)
+                {
+
+                    // Limpia el resaltado en la pestaña anterior
+                    ClearWordHighlighter(previousEditor);
+
+                    // Actualiza la posición del caret en los datos de la pestaña
+                    previousFileData.CaretLine = previousEditor.TextArea.Caret.Line;
+                    previousFileData.CaretColumn = previousEditor.TextArea.Caret.Column;
+                }
+            }
+
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            if (editor != null && tabControl.SelectedItem is TabItem selectedTab && selectedTab.Tag is TabFileData fileData)
+            {
+                // Actualizar la búsqueda al cambiar de pestaña
+                UpdateSearch(editor);
+
+
+
+                // Restaurar la posición del caret y el scroll para la pestaña activa
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    // Asegúrate de que los datos corresponden a la pestaña activa
+                    if (tabControl.SelectedItem == selectedTab)
+                    {
+                        editor.TextArea.Caret.Line = fileData.CaretLine;
+                        editor.TextArea.Caret.Column = fileData.CaretColumn;
+
+                        // Desplázate a la posición correcta
+                        editor.ScrollTo(fileData.CaretLine, fileData.CaretColumn);
+                        editor.Focus();
+
+                        // Asegurar que el caret se muestre visiblemente
+                        editor.TextArea.Caret.BringCaretToView();
+
+                    }
+                }), System.Windows.Threading.DispatcherPriority.ContextIdle);
+
+                _wordHighlighter = new WordHighlighter(editor);
+                editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
+            }
+        }
 
 
 
@@ -2558,7 +2684,13 @@ namespace HP_PRIME_CODE
             editor.WordWrap = false;
             editor.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible; // Asegura que el scroll horizontal sea visible
             editor.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;     // Ajusta el scroll vertical según el contenido
-                                                                                  // Obtener el ancho de la línea más larga
+            var scrollBarStyle = (Style)Application.Current.Resources["UiScrollBar"];
+
+            // Aplicar el estilo a los ScrollBars del TextEditor
+            if (scrollBarStyle != null)
+            {
+                editor.Resources.Add(typeof(System.Windows.Controls.Primitives.ScrollBar), scrollBarStyle);
+            }                                          // Obtener el ancho de la línea más larga
 
             //============================================================
 
@@ -2601,6 +2733,7 @@ namespace HP_PRIME_CODE
             {
                 foldingStrategy.UpdateFoldings(foldingManager, editor.Document);
             };
+            Funcion_ReplegadoDeBloques(editor); //Replegar Bloques y color de margen
 
             //==========================================
             //AUTO COMPLETADO ====================
@@ -2628,8 +2761,7 @@ namespace HP_PRIME_CODE
             //==========================================
             //PARA MOSTRAR REFERENCIAS DE UNA SELECCION =============== EVENTO
             // Instala el resaltador de palabras en el TextArea
-            _wordHighlighter = new WordHighlighter(editor);
-            editor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
+            Funcion_ResaltarSelecionWord(editor); // Resaltar textos similares
 
             //==========================================
             //      AGREGADO 2024 - II
@@ -2641,11 +2773,20 @@ namespace HP_PRIME_CODE
 
             //==========================================
             // [3] Agregar el evento TextChanged para condicion de modificacion y mostrar **
-            editor.TextChanged += TextEditor_TextChanged;
-
+            editor.TextChanged += Editor_TextChanged;
+            //editor.TextChanged += AnalizarCodigo;
             //==========================================
             // [4] Agregar el evento actualizar minimapa altura
             editor.SizeChanged += Editor_SizeChanged;
+
+            //==========================================
+            // [5]Vincula el evento de cambio de posición del caret al cargar el editor
+            editor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
+
+            //====================================
+            //[6] pinta error 
+            Funcion_ResaltadorDeError(editor); //Pintar error syntax de rojo
+
 
         }
 
@@ -2706,98 +2847,48 @@ namespace HP_PRIME_CODE
                 ? System.IO.Path.GetFileName(filePath) // Nombre del archivo
                 : $"Nuevo {GetNextAvailableTabNumber()}"; // Nombre único para una nueva pestaña
 
-            // Crear un nuevo TabItem y configurar el editor
+            // Crear un nuevo TabItem
             TabItem newTab = new TabItem { Header = header };
+
+            // Crear el editor de texto
             TextEditor newEditor = new TextEditor();
             ConfigureEditor(newEditor);
 
             // Si se proporciona un archivo, cargar su contenido
             if (!string.IsNullOrEmpty(filePath))
             {
-                newEditor.Text = IndentarCodigo(HpprgmExtractor.ExtractLegibleText(filePath),"    ");
-                
+                newEditor.Text = IndentarCodigo(HpprgmExtractor.ExtractLegibleText(filePath), "    ");
             }
 
-            // Guardar la información en el Tag
-            newTab.Content = newEditor;
-            newTab.Tag = new TabFileData
+            // Crear el modelo de datos para esta pestaña
+            TabFileData tabFileData = new TabFileData
             {
                 FilePath = filePath,
                 Header = header,
-                IsModified = false
+                IsModified = false,
+                
             };
+
+
+            // Vincular eventos al editor para actualizar el estado del archivo modificado
+            newEditor.TextChanged += (s, e) =>
+            {
+                tabFileData.IsModified = true; // Marca la pestaña como modificada
+                UpdateCloseIcon(tabFileData, newTab); // Actualiza el Boton 
+            };
+
+            // Guardar la información en el Tag
+            newTab.Content = newEditor;
+            UpdateCloseIcon(tabFileData, newTab); // Actualiza el Boton 
+            newTab.Tag = tabFileData;
+            
 
             // Añadir la pestaña al TabControl y seleccionarla
             Tabs.Add(newTab);
             tabControl.SelectedItem = newTab;
-
         }
 
-        private void CopyClearAndPaste(TextEditor editor)
-        {
-            try
-            {
-                // Obtener el texto actual del editor
-                string currentText = editor.Text;
 
-                // Intentar copiar el texto al portapapeles
-                if (!TrySetClipboardText(currentText))
-                {
-                    return;
-                }
-
-                // Seleccionar todo el texto en el editor
-                editor.SelectAll();
-
-                // Limpiar el editor (elimina el texto seleccionado)
-                editor.Text = string.Empty;
-
-                // Intentar pegar el texto desde el portapapeles
-                if (!TryPasteClipboardText(editor))
-                {
-                }
-            }
-            catch (Exception ex)
-            {
-            }
-        }
-
-        private bool TrySetClipboardText(string text, int maxRetries = 5, int delayBetweenRetries = 100)
-        {
-            for (int i = 0; i < maxRetries; i++)
-            {
-                try
-                {
-                    Clipboard.SetText(text);
-                    return true; // Operación exitosa
-                }
-                catch (COMException)
-                {
-                    // Esperar antes de reintentar
-                    System.Threading.Thread.Sleep(delayBetweenRetries);
-                }
-            }
-            return false; // Falló después de varios intentos
-        }
-
-        private bool TryPasteClipboardText(TextEditor editor, int maxRetries = 5, int delayBetweenRetries = 100)
-        {
-            for (int i = 0; i < maxRetries; i++)
-            {
-                try
-                {
-                   
-                    editor.Paste();
-                    return true; // Operación exitosa
-                }
-                catch (COMException)
-                {
-                    // Esperar antes de reintentar
-                    System.Threading.Thread.Sleep(delayBetweenRetries);
-                }
-            }
-            return false; // Falló después de varios intentos
-        }
 
         public static string IndentarCodigo(string codigo, string indentacion)
         {
@@ -2926,18 +3017,16 @@ namespace HP_PRIME_CODE
 
             // Marca como no modificado
             fileData.IsModified = false;
+            
 
             // Actualiza el nombre del archivo en el encabezado de la pestaña
             fileData.Header = System.IO.Path.GetFileName(fileData.FilePath); // Establece el encabezado con el nombre del archivo
 
-            // Elimina el asterisco del encabezado si es necesario
-            if (fileData.Header.EndsWith("*"))
-            {
-                fileData.Header = fileData.Header.TrimEnd('*');
-            }
 
             // Actualiza el nombre de la pestaña
             TabItem tabItem = Tabs.FirstOrDefault(t => t.Tag == fileData);
+            UpdateCloseIcon(fileData, tabItem); // Actualiza el Boton 
+
             if (tabItem != null)
             {
                 tabItem.Header = fileData.Header;
@@ -2954,7 +3043,7 @@ namespace HP_PRIME_CODE
             if (!string.IsNullOrEmpty(fileData.Header) && fileData.Header.StartsWith("Nuevo"))
             {
                 // Solo establecer el nombre si la pestaña es nueva y no tiene un archivo guardado
-                saveFileDialog.FileName = fileData.Header.Replace("*", "");  // Establece el nombre de la pestaña sin el asterisco
+                saveFileDialog.FileName = fileData.Header;  // Establece el nombre de la pestaña sin el asterisco
             }
 
             if (saveFileDialog.ShowDialog() == true)
@@ -2976,13 +3065,7 @@ namespace HP_PRIME_CODE
 
                 // Marca como no modificado
                 fileData.IsModified = false;
-
-                // Actualiza el encabezado con el nombre del archivo (sin el asterisco)
-                fileData.Header = System.IO.Path.GetFileName(fileData.FilePath); // Nombre del archivo
-                if (fileData.Header.EndsWith("*"))
-                {
-                    fileData.Header = fileData.Header.TrimEnd('*');
-                }
+                
 
                 // Asigna el número de la pestaña actual al conjunto usedTabs
                 int? newTabNumber = GetTabNumberFromHeader(fileData.Header);
@@ -2993,6 +3076,8 @@ namespace HP_PRIME_CODE
 
                 // Actualiza el nombre de la pestaña
                 TabItem tabItem = Tabs.FirstOrDefault(t => t.Tag == fileData);
+                UpdateCloseIcon(fileData, tabItem); // Actualiza el Boton 
+
                 if (tabItem != null)
                 {
                     tabItem.Header = fileData.Header;
@@ -3054,8 +3139,6 @@ namespace HP_PRIME_CODE
         // Método para obtener el número de la pestaña desde el Header
         private int? GetTabNumberFromHeader(string header)
         {
-            // Eliminar el asterisco (si existe)
-            header = header.Replace("*", "").Trim();
 
             // Verificar si el encabezado tiene el formato exacto "Nuevo X"
             if (header.StartsWith("Nuevo ") && header.Length > 6) // "Nuevo " tiene 6 caracteres
@@ -3148,17 +3231,18 @@ namespace HP_PRIME_CODE
 
         private void LiberarNumeroPestana(TabItem tabToClose)
         {
-            string tabHeader = tabToClose.Header.ToString();
-
-            // Eliminar el asterisco (si existe) y extraer el número de la pestaña
-            tabHeader = tabHeader.Replace("*", "").Trim();
-
-            int? tabNumber = GetTabNumberFromHeader(tabHeader);
-            if (tabNumber.HasValue)
+            if (tabToClose.Tag is TabFileData fileData)
             {
-                usedTabs.Remove(tabNumber.Value); // Liberar el número de la pestaña
+                // Extraer el número de la pestaña del encabezado
+                int? tabNumber = GetTabNumberFromHeader(fileData.Header);
+
+                if (tabNumber.HasValue)
+                {
+                    usedTabs.Remove(tabNumber.Value); // Liberar el número de la pestaña
+                }
             }
         }
+
 
 
 
@@ -3330,15 +3414,26 @@ namespace HP_PRIME_CODE
                     editor.TextArea.SelectionBrush = (Brush)Application.Current.Resources["EditorSelectionColor"];  // Cambia "LightBlue" al color que prefieras.                                                                                                                       // Elimina el borde de la selección
                     editor.TextArea.SelectionBorder = null;
                     editor.TextArea.SelectionForeground = null;
-                    
+
+                    // Obtener el TabItem y su modelo asociado
+                    if (editor != null  && tabItem.Tag is TabFileData tabData)
+                    {
+
+                        UpdateCloseIcon(tabData, tabItem); // color que simula midificado
+                                                           // Limpia y reinicia el resaltador
+                    }
 
                     LoadSyntaxHighlighting(editor); // aplica Syntasix color
                     FillLavesAperurasYcierres(editor);// Pinta llaves
                     Funcion_LineaRango(editor);// Linea de Alcance
-                    Funcion_LineaMarcador(editor); // Resaltar linea 
+                    Funcion_LineaMarcador(editor); // Resaltar linea
+                    Funcion_ResaltarSelecionWord(editor); // Resaltar textos similares
                     Funcion_Resaltarllaves(editor); // Resaltar llaves
                     Funcion_PanelHoover(editor); // Muestra panel hoover
                     Funcion_MenuContent(editor); // Menu flotante en editor cut copy paste
+                    Funcion_ResaltadorDeError(editor); //Pintar error syntax de rojo
+                    Funcion_ReplegadoDeBloques(editor); //Replegar Bloques y color de margen
+
 
                 }
             }
@@ -3406,6 +3501,12 @@ namespace HP_PRIME_CODE
             actualEditor.TextArea.TextView.BackgroundRenderers.Add(renderer);
         }// Resaltar linea con marcador
 
+        private void Funcion_ResaltarSelecionWord(TextEditor actualEditor)
+        {
+            _wordHighlighter = new WordHighlighter(actualEditor);
+            actualEditor.TextArea.TextView.BackgroundRenderers.Add(_wordHighlighter);
+        }// Resaltar textos similares
+
         private void Funcion_Resaltarllaves(TextEditor actualEditor)
         {
             BracketHighlighter highlighter = new BracketHighlighter(actualEditor);
@@ -3461,13 +3562,48 @@ namespace HP_PRIME_CODE
             actualEditor.ContextMenu.Items.Add(new Separator());
             actualEditor.ContextMenu.Items.Add(menuItemSelectAll);
 
-        }
+        } //Para popup cortar pegar copiar
+
+        private void Funcion_ResaltadorDeError(TextEditor actualEditor)
+        {
+            var existingService = actualEditor.TextArea.TextView.Services.GetService(typeof(ITextMarkerService)) as ITextMarkerService;
+            if (existingService == null)
+            {
+                // Crea y asocia el TextMarkerService si no está presente
+                var textMarkerService = new TextMarkerService(actualEditor.TextArea.TextView);
+
+                // Agrega el servicio al TextView
+                actualEditor.TextArea.TextView.Services.AddService(typeof(ITextMarkerService), textMarkerService);
+
+                // Si es necesario, agrega el servicio también a los renderizadores y transformadores
+                actualEditor.TextArea.TextView.BackgroundRenderers.Add(textMarkerService);
+                actualEditor.TextArea.TextView.LineTransformers.Add(textMarkerService);
+            }
+
+        } //Para pintar error de rojo
+
+        private void Funcion_ReplegadoDeBloques(TextEditor actualEditor)
+        {
+
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+            // Configurar los colores del FoldingMargin
+            if (ThemeSelected == 1)
+            {
+                FoldingMargin.SetFoldingMarkerBrush(actualEditor.TextArea, Brushes.Gray);
+                FoldingMargin.SetFoldingMarkerBackgroundBrush(actualEditor.TextArea, new SolidColorBrush(Color.FromRgb(44, 44, 44)));
+                FoldingMargin.SetSelectedFoldingMarkerBrush(actualEditor.TextArea, new SolidColorBrush(Color.FromRgb(212, 212, 212)));
+                FoldingMargin.SetSelectedFoldingMarkerBackgroundBrush(actualEditor.TextArea, new SolidColorBrush(Color.FromRgb(44, 44, 44)));
+            }
+            else
+            {
+                FoldingMargin.SetFoldingMarkerBrush(actualEditor.TextArea, Brushes.Gray);
+                FoldingMargin.SetFoldingMarkerBackgroundBrush(actualEditor.TextArea, Brushes.White);
+                FoldingMargin.SetSelectedFoldingMarkerBrush(actualEditor.TextArea, Brushes.Black);
+                FoldingMargin.SetSelectedFoldingMarkerBackgroundBrush(actualEditor.TextArea, Brushes.White);
+            }
 
 
-
-
-
-
+        } //Pintado y forma de Replegar
 
 
 
@@ -3488,6 +3624,7 @@ namespace HP_PRIME_CODE
 
         //Evento guardar pestañas al cerrar programa
 
+        // Guardar estado de las pestañas y sus plegados
         private void SaveTabsState()
         {
             // Crear una lista para almacenar el estado de las pestañas
@@ -3534,8 +3671,21 @@ namespace HP_PRIME_CODE
                     ConfigureEditor(restoredEditor);
                     restoredEditor.Text = fileData.Text;
 
-                    // Establecer el Header de la pestaña
-                    restoredTab.Header = fileData.Header;
+                    // Asignar los datos al Tag
+                    fileData.IsInitialized = false; // Inicialmente no está inicializada
+                    restoredTab.Content = restoredEditor;
+                    restoredTab.Tag = fileData;
+
+                    Tabs.Add(restoredTab);
+
+                    // Actualizar ícono del botón de cerrar después de que el árbol visual esté listo
+                    restoredTab.Loaded += (sender, e) =>
+                    {
+                        if (restoredTab.Tag is TabFileData data)
+                        {
+                            UpdateCloseIcon(data, restoredTab);
+                        }
+                    };
 
                     // Restaurar caret y desplazamiento al abrir la pestaña
                     restoredEditor.Loaded += (sender, e) =>
@@ -3550,14 +3700,7 @@ namespace HP_PRIME_CODE
                         }
                     };
 
-                    // Asignar los datos al Tag
-                    fileData.IsInitialized = false; // Inicialmente no está inicializada
-                    restoredTab.Content = restoredEditor;
-                    restoredTab.Tag = fileData;
-
-                    Tabs.Add(restoredTab);
-
-                    // Si el nombre de la pestaña es "Nuevo X", agrega X a `usedTabs`
+                    // Si el nombre de la pestaña es "Nuevo X", agrega X a usedTabs
                     if (fileData.Header.StartsWith("Nuevo"))
                     {
                         string[] parts = fileData.Header.Split(' ');
@@ -3575,63 +3718,336 @@ namespace HP_PRIME_CODE
                     if (int.TryParse(activeTabIndexStr, out int activeTabIndex) &&
                         activeTabIndex >= 0 && activeTabIndex < Tabs.Count)
                     {
-
-
                         tabControl.SelectedIndex = activeTabIndex;
-
 
                         // Asegurar el foco en el editor de la pestaña activa
                         if (Tabs[activeTabIndex].Content is TextEditor activeEditor)
                         {
-
                             activeEditor.Focus();
-
+                            activeEditor.TextArea.Caret.BringCaretToView();
                             RedrawMinimap();
                         }
-
-
-
                     }
                 }
-
-
             }
         }
-
 
         //Evento actualizar TabItem si se modifica texto o no *
-        private void TextEditor_TextChanged(object sender, EventArgs e)
+        private TextEditor? currentEditorEvent; // Almacena el editor que generó el último evento
+
+        private void Editor_TextChanged(object sender, EventArgs e)
         {
-            TextEditor editor = (TextEditor)sender;
-            TabItem tabItem = editor.Parent as TabItem;
-            if (tabItem != null && tabItem.Tag is TabFileData fileData)
+            var editor = sender as TextEditor;
+
+            if (editor != null && editor.Parent is TabItem tabItem && tabItem.Tag is TabFileData tabData)
             {
-                // Verificar si la pestaña ya tiene un asterisco
-                if (!fileData.Header.EndsWith("*"))
-                {
-                    // Agregar el asterisco al nombre de la pestaña
-                    fileData.Header += "*";
-                    tabItem.Header = fileData.Header;
-                }
+                // Marcar el archivo como modificado
+                tabData.IsModified = true;
+                UpdateCloseIcon(tabData, tabItem);
 
-                // Marcar la pestaña como modificada
-                fileData.IsModified = true;
+                // Actualiza el editor actual que será analizado
+                currentEditorEvent = editor;
+
+                // Reinicia el temporizador global
+                debounceTimer.Stop();
+                debounceTimer.Start();
+
+                // Actualiza la posición del cursor (si es necesario)
+                // UpdateCursorPosition(editor);
             }
+        }
 
+        // Método que se ejecuta al finalizar el tiempo de debounce
+        private void DebounceTimer_Tick(object? sender, EventArgs e)
+        {
+            debounceTimer.Stop(); // Detiene el temporizador
 
+            // Realiza el análisis solo si hay un editor activo
+            if (currentEditorEvent != null)
+            {
+                AnalizarCodigoANTLR(currentEditorEvent);
+            }
         }
 
 
 
 
+
+        //==================================
+
+        private void UpdateCloseIcon(TabFileData tabData, TabItem activeTab)
+        {
+
+
+            if (tabData.IsModified)
+            {
+
+                UpdateCloseButton(activeTab, (Brush)Application.Current.Resources["ColorCustomSemiNegroG"]);
+            }
+            else
+            {
+                UpdateCloseButton(activeTab, Brushes.Transparent);
+            }
+        }
+
+        private void UpdateCloseButton(TabItem tabItem, Brush newForeground)
+        {
+
+            if (tabItem != null)
+            {
+
+                // Cambia el texto del botón (TextBlock dentro del botón)
+                var textBlock = VisualTreeHelperExtensions.FindVisualChild<TextBlock>(tabItem);
+                if (textBlock != null)
+                {
+                    textBlock.Foreground = newForeground; // Cambiar el color del texto
+                }
+                
+            }
+        }
+
+
         //********************************************************************************************
 
         //=========================================================================================
         //
-        //    ******** FUNCION PRUEBA PARA AUTOCOMPLETATION
+        //    ******** FUNCION PRUEBA PARA DETECTO DE ERROR DE SINTAXYS
         //
         //=========================================================================================
         //********************************************************************************************
+
+        // Controla selecion de Item y salta a linea en panel de errores
+        private void ErrorList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            // Obtener el error seleccionado
+            var errorSeleccionado = (SyntaxError)ErrorList.SelectedItem;
+            if (errorSeleccionado != null)
+            {
+                // Calcular el offset para la posición exacta de línea y columna
+                int offset = editor.Document.GetOffset(errorSeleccionado.Line, errorSeleccionado.Column);
+
+                // Mover el cursor al offset
+                editor.CaretOffset = offset;
+
+                // Desplazar la vista para mostrar el error
+                editor.ScrollTo(errorSeleccionado.Line, errorSeleccionado.Column);
+
+                // Forzar el foco en el editor (para mostrar la barra parpadeante)
+                editor.Focus();
+
+                // Asegurar que el caret se muestre visiblemente
+                editor.TextArea.Caret.BringCaretToView();
+            }
+        }
+
+
+
+
+        //Analizador 
+
+
+
+        //boton mostrar panel de errores
+        private void ErrorButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ErrorPanelRow.Height.Value < 20) // Panel está minimizado
+            {
+                // Expandir el panel
+                ErrorPanelRow.Height = new GridLength(250, GridUnitType.Pixel);
+            }
+            else
+            {
+                // Minimizar el panel
+                ErrorPanelRow.Height = new GridLength(1, GridUnitType.Pixel); // Mantener altura mínima
+            }
+        }
+
+
+
+
+
+
+        ////////// METODO ANTLR
+        public List<SyntaxError> SyntaxErrors { get; set; } = new List<SyntaxError>();
+
+        private void AnalizarCodigoANTLR(TextEditor editor)
+        {
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
+
+            string code = editor.Text;
+
+            // Crea una instancia del lexer
+            AntlrInputStream input = new AntlrInputStream(code);
+            CustomLangLexer lexer = new CustomLangLexer(input);
+
+            // Crea una instancia del parser
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CustomLangParser parser = new CustomLangParser(tokens);
+
+            // Crea una instancia del manejador de errores
+            SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+
+            // Agrega el manejador de errores al parser
+            parser.AddErrorListener(syntaxErrorListener);
+
+            // Llama al método program() del parser
+            CustomLangParser.ProgramContext tree = parser.program();
+
+            // Actualiza la lista de errores
+            SyntaxErrors = syntaxErrorListener.Errors;
+
+            // Crea el servicio de marcadores
+            var textMarkerService = editor.TextArea.TextView.Services.GetService(typeof(ITextMarkerService)) as ITextMarkerService;
+            textMarkerService.RemoveAll(m => true); // Eliminar marcadores existentes
+
+            foreach (var error in SyntaxErrors)
+            {
+                int lineNumber = error.Line; // Número de línea donde ocurrió el error
+                DocumentLine line = editor.Document.GetLineByNumber(lineNumber);
+
+                if (line != null)
+                {
+                    int startOffset;
+                    int length;
+
+                    // Obtén el texto de la línea
+                    string lineText = editor.Document.GetText(line);
+
+                    // Revisa hacia atrás desde la columna del error
+                    int errorColumn = error.Column-1; // Columna basada en índice cero
+                    int backwardIndex = errorColumn;
+
+                    // Busca hacia atrás ignorando espacios en blanco
+                    while (backwardIndex >= 0 && char.IsWhiteSpace(lineText[backwardIndex]))
+                    {
+                        backwardIndex--;
+                    }
+
+                    if (backwardIndex < 0)
+                    {
+                        // Caso 2: No hay texto útil hacia atrás, pinta desde la columna del error hasta el final de la línea
+                        startOffset = line.Offset + errorColumn;
+                        length = line.Length - errorColumn;
+                    }
+                    else
+                    {
+                        // Caso 1: Hay texto útil hacia atrás
+                        int firstNonWhiteIndex = backwardIndex;
+
+                        // Busca el inicio del texto útil en la línea
+                        while (firstNonWhiteIndex > 0 && !char.IsWhiteSpace(lineText[firstNonWhiteIndex - 1]))
+                        {
+                            firstNonWhiteIndex--;
+                        }
+
+                        startOffset = line.Offset + firstNonWhiteIndex; // Desde el inicio del texto útil
+                        length = errorColumn - firstNonWhiteIndex + 1;  // Hasta la columna del error (inclusiva)
+                    }
+
+                    // Crea el marcador con el rango calculado
+                    ITextMarker marker = textMarkerService.Create(startOffset, length);
+                    marker.MarkerTypes = TextMarkerTypes.SquigglyUnderline;
+                    marker.MarkerColor = ThemeSelected == 0 ? Colors.Red : Colors.OrangeRed;
+                    marker.ToolTip = error.Message;
+                }
+            }
+            editor.TextArea.TextView.Redraw();
+
+
+            // Actualiza la lista de errores en el DataGrid (si se usa)
+            ErrorList.ItemsSource = null;
+            ErrorList.ItemsSource = SyntaxErrors;
+        }
+
+
+
+
+        (int startOffset, int length) CalculateDynamicLength(TextEditor editor, int errorLine, int errorColumn)
+        {
+            // Obtener la línea del error
+            DocumentLine line = editor.Document.GetLineByNumber(errorLine);
+
+            if (line == null) return (0, 0); // Si la línea no existe, devolvemos valores por defecto
+
+            string lineText = editor.Document.GetText(line.Offset, line.Length); // Texto completo de la línea
+
+            // La posición del error en la línea (index basado en columna)
+            int errorIndex = errorColumn - 1; // `errorColumn` es 1-based, necesitamos convertirlo a 0-based
+
+            // 1. Buscamos hacia atrás para encontrar el inicio del texto en la línea
+            int startIndex = errorIndex;
+            while (startIndex > 0 && !char.IsWhiteSpace(lineText[startIndex - 1]))
+            {
+                startIndex--; // Retrocedemos hasta encontrar el inicio del texto
+            }
+
+            // 2. Si estamos al inicio de la línea o no hay texto hacia atrás, marcamos hacia adelante
+            int endIndex = errorIndex;
+            if (startIndex == errorIndex) // No hay texto hacia atrás, avanzamos hacia adelante
+            {
+                while (endIndex < lineText.Length && !char.IsWhiteSpace(lineText[endIndex]))
+                {
+                    endIndex++; // Avanzamos hasta el final del texto en la línea
+                }
+            }
+
+            // 3. Calcular `startOffset` y `length`
+            int startOffset = line.Offset + startIndex; // Offset absoluto en el documento
+            int length = Math.Max(1, endIndex - startIndex); // Aseguramos que el marcador tenga al menos 1 carácter
+
+            return (startOffset, length);
+        }
+
+
+
+        private void DepurarButon_click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+            var textMarkerService = editor.TextArea.TextView.Services.GetService(typeof(ITextMarkerService)) as ITextMarkerService;
+
+            if (textMarkerService != null)
+            {
+                int startOffset = 0;
+                int length = Math.Min(10, editor.Document.TextLength);
+
+                var marker = textMarkerService.Create(startOffset, length);
+                marker.MarkerTypes = TextMarkerTypes.SquigglyUnderline;
+                marker.MarkerColor = Colors.Red;
+                marker.ToolTip = "Esto es una prueba";
+
+                Debug.WriteLine("Marcador de prueba creado");
+                editor.TextArea.TextView.Redraw();
+            }
+        }
+
+
+        //=========================================================================================
+        //
+        //    ******** FUNCION Y MEJORAS
+        //
+        //=========================================================================================
+        //********************************************************************************************
+
+        // Line y Columna en pantalla
+        private void Caret_PositionChanged(object? sender, EventArgs e)
+        {
+            if (sender is ICSharpCode.AvalonEdit.Editing.Caret caret)
+            {
+                int line = caret.Line;
+                int column = caret.Column;
+
+                // Mostrar posición del caret en un TextBlock
+                LabelLinCol.Text = $"Línea: {line}  Columna: {column}";
+            }
+        }
+   
+
+
+
 
 
 

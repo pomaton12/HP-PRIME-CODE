@@ -6,7 +6,7 @@
     <system:String x:Key="textArchivo">Archivo</system:String>
     <system:String x:Key="textEditar">Editar</system:String>
     <system:String x:Key="textInsertar">Insertar</system:String>
-    <system:String x:Key="textDibujar">Dibujar</system:String>
+    <system:String x:Key="textAvanzados">Avanzados</system:String>
     <system:String x:Key="textDepurar">Depurar</system:String>
     <system:String x:Key="textCompilar">Compilar</system:String>
     <system:String x:Key="textAyuda">Ayuda</system:String>

@@ -13,7 +13,8 @@
     <!-- ===========-->
     <Color x:Key="HexCustomFondoResult">#FFFFFF</Color>
     <Color x:Key="HexCustomDefault">#FFFFFF</Color>
-    <Color x:Key="HexCustomTheme">#F3F3F3</Color>
+    <Color x:Key="HexCustomTheme">#EEEEF2</Color>
+    <Color x:Key="HexCustomTitleTheme">#E8E8E8</Color>
 
     <Color x:Key="HexCustomSelectMenu">#50D2D2D2</Color>
     <Color x:Key="HexCustomMouseOver">#EBEBEB</Color>
@@ -22,7 +23,7 @@
     <Color x:Key="HexCustomPP">#F5F5F5</Color>
     <SolidColorBrush x:Key="ColorBorderPP" Color="{DynamicResource  HexCustomPP}" />
     <SolidColorBrush x:Key="ColorCustomTheme" Color="{DynamicResource  HexCustomTheme}" />
-
+    <SolidColorBrush x:Key="ColorCustomTitleTheme" Color="{DynamicResource  HexCustomTitleTheme}" />
     <SolidColorBrush x:Key="ColorCustomRegla" Color="{DynamicResource  HexCustomSelectMenu}" />
 
     <!-- TODO PARA OPEN -->
@@ -125,10 +126,12 @@
     <Color x:Key="HexCustomContextBorde">#D4D4D4</Color>
     <Color x:Key="HexCustomContextText">#292929</Color>
     <Color x:Key="HexCustomContextTMouseOver">#0060C0</Color>
+    <Color x:Key="HexCustomContextTMouseOverBorder">#0060C0</Color>
 
     <SolidColorBrush x:Key="ColorContextBorde" Color="{DynamicResource  HexCustomContextBorde}" />
     <SolidColorBrush x:Key="ColorContextText" Color="{DynamicResource  HexCustomContextText}" />
     <SolidColorBrush x:Key="ColorContextMouseOver" Color="{DynamicResource  HexCustomContextTMouseOver}" />
+    <SolidColorBrush x:Key="ColorContextMouseOverBorder" Color="{DynamicResource  HexCustomContextTMouseOverBorder}" />
 
     <!-- PARA PANEL BUSCAR -->
     <Color x:Key="HexCustomSearchFondo">#F3F3F3</Color>
@@ -141,12 +144,19 @@
     <!--  DynamicScrollBar  -->
     <Color x:Key="AcrylicBackgroundFillColorDefault">#F5F5F5</Color>
     <Color x:Key="SubtleFillColorTransparent">#00FFFFFF</Color>
-    <Color x:Key="ControlStrongFillColorDefault">#72000000</Color>
+    <Color x:Key="ControlStrongFillColorDefault">#99000000</Color>
+    
+    <Color x:Key="ControlStrongOverNoColorDefault">#25000000</Color>
+    <Color x:Key="ControlStrongOverColorDefault">#72000000</Color>
 
     <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="{StaticResource AcrylicBackgroundFillColorDefault}" />
     <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="{StaticResource SubtleFillColorTransparent}" />
     <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{StaticResource ControlStrongFillColorDefault}" />
     <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{StaticResource ControlStrongFillColorDefault}" />
+
+    <SolidColorBrush x:Key="ScrollBarThumbOverNo" Color="{StaticResource ControlStrongOverNoColorDefault}" />
+
+    <SolidColorBrush x:Key="ScrollBarThumbOver" Color="{StaticResource ControlStrongOverColorDefault}" />
 
     <!--  Dynamic Editor  -->
     <Color x:Key="EditorFillColorDefault">#FFFFFF</Color>

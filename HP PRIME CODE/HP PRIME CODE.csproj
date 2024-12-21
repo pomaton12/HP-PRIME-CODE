@@ -2,12 +2,20 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>HP_PRIME_CODE</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Imagen\Hp_Prime_ico.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsPublishable>True</IsPublishable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsPublishable>True</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,10 +43,14 @@
     <None Remove="Imagen\Inicio\Borrar_Light.svg" />
     <None Remove="Imagen\Inicio\Buscar_Dark.svg" />
     <None Remove="Imagen\Inicio\buscar_light.svg" />
+    <None Remove="Imagen\Inicio\Config_Dark.svg" />
+    <None Remove="Imagen\Inicio\Config_Light.svg" />
     <None Remove="Imagen\Inicio\Copy_Dark.svg" />
     <None Remove="Imagen\Inicio\Copy_Light.svg" />
     <None Remove="Imagen\Inicio\Cut_Dark.svg" />
     <None Remove="Imagen\Inicio\Cut_Light.svg" />
+    <None Remove="Imagen\Inicio\Expand_Dark.svg" />
+    <None Remove="Imagen\Inicio\Expand_Light.svg" />
     <None Remove="Imagen\Inicio\file_dark.svg" />
     <None Remove="Imagen\Inicio\file_light.svg" />
     <None Remove="Imagen\Inicio\Folder_Dark.svg" />
@@ -56,6 +68,8 @@
     <None Remove="Imagen\Inicio\Selected_Dark.svg" />
     <None Remove="Imagen\Inicio\Selected_Light.svg" />
     <None Remove="Imagen\Inicio\send_light.svg" />
+    <None Remove="Imagen\Inicio\UnExpand_Dark.svg" />
+    <None Remove="Imagen\Inicio\UnExpand_Light.svg" />
     <None Remove="Imagen\MessageBox\afirmation.png" />
     <None Remove="Imagen\MessageBox\caution.png" />
     <None Remove="Imagen\MessageBox\error.png" />
@@ -73,12 +87,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Antlr" Version="3.5.0.2" />
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
     <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
     <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="DotNetProjects.SVGImage" Version="5.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.3" />
+    <PackageReference Include="Velopack" Version="0.0.1015" />
     <PackageReference Include="WPF-UI" Version="3.0.5" />
     <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
@@ -108,10 +123,14 @@
     <Resource Include="Imagen\Inicio\Borrar_Light.svg" />
     <Resource Include="Imagen\Inicio\Buscar_Dark.svg" />
     <Resource Include="Imagen\Inicio\Buscar_Light.svg" />
+    <Resource Include="Imagen\Inicio\Config_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Config_Light.svg" />
     <Resource Include="Imagen\Inicio\Copy_Dark.svg" />
     <Resource Include="Imagen\Inicio\Copy_Light.svg" />
     <Resource Include="Imagen\Inicio\Cut_Dark.svg" />
     <Resource Include="Imagen\Inicio\Cut_Light.svg" />
+    <Resource Include="Imagen\Inicio\Expand_Dark.svg" />
+    <Resource Include="Imagen\Inicio\Expand_Light.svg" />
     <Resource Include="Imagen\Inicio\File_Dark.svg" />
     <Resource Include="Imagen\Inicio\File_Light.svg" />
     <Resource Include="Imagen\Inicio\Folder_Light.svg" />
@@ -129,6 +148,8 @@
     <Resource Include="Imagen\Inicio\Selected_Dark.svg" />
     <Resource Include="Imagen\Inicio\Selected_Light.svg" />
     <Resource Include="Imagen\Inicio\send_light.svg" />
+    <Resource Include="Imagen\Inicio\UnExpand_Dark.svg" />
+    <Resource Include="Imagen\Inicio\UnExpand_Light.svg" />
     <Resource Include="Imagen\MessageBox\afirmation.png" />
     <Resource Include="Imagen\MessageBox\caution.png" />
     <Resource Include="Imagen\MessageBox\error.png" />

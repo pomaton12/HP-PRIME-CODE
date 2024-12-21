@@ -20,5 +20,7 @@
     <svg1:SvgIcon x:Key="IconoCut" Source="/Imagen/Inicio/Cut_Dark.svg" />
     <svg1:SvgIcon x:Key="IconoCopy" Source="/Imagen/Inicio/Copy_Dark.svg" />
     <svg1:SvgIcon x:Key="IconoPaste" Source="/Imagen/Inicio/Paste_Dark.svg" />
-
+    <svg1:SvgIcon x:Key="IconoExpand" Source="/Imagen/Inicio/Expand_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoUnExpand" Source="/Imagen/Inicio/UnExpand_Dark.svg" />
+    <svg1:SvgIcon x:Key="IconoConfig" Source="/Imagen/Inicio/Config_Dark.svg" />
 </ResourceDictionary>
