@@ -1290,7 +1290,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Margin="5 2 5 2">
+                        <Grid Margin="5 5 5 5">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -1501,7 +1501,7 @@
                                 <DataTemplate>
                                     <TextBlock
                                     Text="{Binding}"
-                                    FontSize="13"
+                                    FontSize="14"
                                     Foreground="{DynamicResource PanelHooverTextColor}" />
                                 </DataTemplate>
                             </ContentPresenter.ContentTemplate>
@@ -1513,7 +1513,7 @@
                     Margin="25,0,0,0"
                     VerticalAlignment="Bottom"
                     DockPanel.Dock="Right"
-                    FontSize="11"
+                    FontSize="13"
                     Foreground="{DynamicResource PanelMenuTextColor}"
                     Text="{TemplateBinding InputGestureText}" />
                     </Grid>

@@ -49,6 +49,13 @@ using Antlr4.Runtime.Tree;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Formatting = Newtonsoft.Json.Formatting;
+using Velopack;
+using Microsoft.Extensions.Logging;
+using Velopack.Sources;
+using Newtonsoft.Json.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Linq.Expressions;
 
 
 
@@ -525,7 +532,8 @@ namespace HP_PRIME_CODE
                 ChangeLinePart(
                     Math.Max(marker.StartOffset, lineStart),
                     Math.Min(marker.EndOffset, lineEnd),
-                    element => {
+                    element =>
+                    {
                         if (foregroundBrush != null)
                         {
                             element.TextRunProperties.SetForegroundBrush(foregroundBrush);
@@ -911,13 +919,400 @@ namespace HP_PRIME_CODE
     }
 
 
+    /// <summary>
+    ///  NUEVO ERROR 
+    /// </summary>
+    public class SemanticAnalyzer : CustomLangBaseVisitor<object>
+    {
+        // Pila de scopes (ámbitos) que estamos gestionando
+        private readonly Stack<ScopeInfo> scopeStack = new Stack<ScopeInfo>();
+        private readonly HashSet<string> globalVariables = new HashSet<string>(); // Variables globales
+        // Diccionario global para registrar los programas y sus parámetros
+        private readonly Dictionary<string, int> registeredPrograms = new Dictionary<string, int>();
+
+
+        public List<SyntaxError> Errors { get; } = new List<SyntaxError>();
+
+        private void RegisterPrograms(CustomLangParser.ProgramContext programContext)
+        {
+            // Recorrer todos los nodos de definición de funciones para registrar los programas
+            foreach (var functionDefinition in programContext.functionDefinition())
+            {
+                string functionName = functionDefinition.ID().GetText();
+                int parameterCount = functionDefinition.functionVariable()?.Length ?? 0;
+
+                if (!registeredPrograms.ContainsKey(functionName))
+                {
+                    registeredPrograms[functionName] = parameterCount;
+                }
+                else
+                {
+                    Errors.Add(new SyntaxError
+                    {
+                        Message = $"Error: El programa '{functionName}' ya ha sido declarado.",
+                        Line = functionDefinition.Start.Line,
+                        Column = functionDefinition.Start.Column
+                    });
+                }
+            }
+        }
+
+        public override object VisitProgram(CustomLangParser.ProgramContext context)
+        {
+            // Registrar todos los programas ANTES de cualquier otra visita
+            RegisterPrograms(context);
+            return base.VisitProgram(context);
+        }
+
+        // Detecta la declaración de variables globales
+        public override object VisitGlobalVariableDeclaration(CustomLangParser.GlobalVariableDeclarationContext context)
+        {
+            foreach (var declarator in context.variableDeclarator())
+            {
+                string varName = declarator.ID().GetText();
+                if (!globalVariables.Add(varName))
+                {
+                    Errors.Add(new SyntaxError
+                    {
+                        Message = $"Error : La variable global '{varName}' ya fue declarada previamente.",
+                        Line = context.Start.Line,
+                        Column = context.Start.Column
+                    });
+                }
+            }
+
+            return base.VisitGlobalVariableDeclaration(context);
+        }
+
+        // Detecta la definición de una función (programa principal o secundario)
+        public override object VisitFunctionDefinition(CustomLangParser.FunctionDefinitionContext context)
+        {
+            string functionName = context.ID()?.GetText();
+            int parameterCount = context.functionVariable()?.Length ?? 0;
+
+
+            // Crear un nuevo scope para las variables locales del programa
+            var functionScope = new ScopeInfo($"Función {functionName}");
+            scopeStack.Push(functionScope);
+
+            // Procesar variables locales declaradas como parámetros
+            if (context.functionVariable() != null)
+            {
+                foreach (var variable in context.functionVariable())
+                {
+                    string variableName = variable.ID().GetText();
+                    if (!functionScope.Variables.Add(variableName))
+                    {
+                        Errors.Add(new SyntaxError
+                        {
+                            Message = $"Error en línea {context.Start.Line}: El parámetro '{variableName}' ya fue declarado.",
+                            Line = context.Start.Line,
+                            Column = context.Start.Column
+                        });
+                    }
+                }
+            }
+
+            // Procesar el cuerpo del programa
+            base.VisitFunctionDefinition(context);
+
+            // Salir del scope
+            scopeStack.Pop();
+            return null;
+        }
+
+        // Detecta la declaración de variables
+        public override object VisitVariableDeclaration(CustomLangParser.VariableDeclarationContext context)
+        {
+            if (scopeStack.Count > 0)
+            {
+                var currentScope = scopeStack.Peek();
+                foreach (var declarator in context.variableDeclarator())
+                {
+                    string varName = declarator.ID().GetText();
+                    if (!currentScope.Variables.Add(varName))
+                    {
+                        Errors.Add(new SyntaxError
+                        {
+                            Message = $"Error : La variable '{varName}' ya fue declarada en el entorno '{currentScope.Name}'.",
+                            Line = context.Start.Line,
+                            Column = context.Start.Column
+                        });
+                    }
+                }
+            }
+
+            return base.VisitVariableDeclaration(context);
+        }
+
+
+        // Detecta la asignación de variables
+        // Detecta la asignación de variables
+        public override object VisitAssignment(CustomLangParser.AssignmentContext context)
+        {
+            string leftHandSide = GetLeftHandSideVariable(context);
+
+            if (string.IsNullOrEmpty(leftHandSide))
+            {
+                Errors.Add(new SyntaxError
+                {
+                    Message = "Error: Asignación inválida. El lado izquierdo debe ser un identificador.",
+                    Line = context.Start.Line,
+                    Column = context.Start.Column
+                });
+                return null;
+            }
+
+            if (!IsDeclared(leftHandSide) && !IsKeyword(leftHandSide))
+            {
+                var currentScopeName = scopeStack.Count > 0 ? scopeStack.Peek().Name : "global";
+                Errors.Add(new SyntaxError
+                {
+                    Message = $"Error : La variable '{leftHandSide}' no está declarada en el entorno '{currentScopeName}'.",
+                    Line = context.Start.Line,
+                    Column = context.Start.Column
+                });
+            }
+
+            var undeclaredVariables = FindUndeclaredIdentifiers(context.expression());
+            foreach (var identifier in undeclaredVariables)
+            {
+                var currentScopeName = scopeStack.Count > 0 ? scopeStack.Peek().Name : "global";
+                Errors.Add(new SyntaxError
+                {
+                    Message = $"Error : El identificador '{identifier}' no está declarado en el entorno '{currentScopeName}'.",
+                    Line = context.Start.Line,
+                    Column = context.Start.Column
+                });
+            }
+
+            return base.VisitAssignment(context);
+        }
+
+        public override object VisitFunctionCall(CustomLangParser.FunctionCallContext context)
+        {
+            string functionName = context.ID()?.GetText();
+
+            // Verificar si es un programa registrado
+            if (registeredPrograms.ContainsKey(functionName))
+            {
+                int expectedParams = registeredPrograms[functionName];
+                int providedParams = context.expression()?.Length ?? 0;
+
+                if (expectedParams != providedParams)
+                {
+                    Errors.Add(new SyntaxError
+                    {
+                        Message = $"Error en línea {context.Start.Line}: El programa '{functionName}' espera {expectedParams} parámetro(s), pero se proporcionaron {providedParams}.",
+                        Line = context.Start.Line,
+                        Column = context.Start.Column
+                    });
+                }
+            }
+            else if (!IsKeyword(functionName)) // No es un programa ni una palabra clave
+            {
+                Errors.Add(new SyntaxError
+                {
+                    Message = $"Error en línea {context.Start.Line}: La función o programa '{functionName}' no está declarado.",
+                    Line = context.Start.Line,
+                    Column = context.Start.Column
+                });
+            }
+
+            // Validar argumentos como expresiones (por ejemplo, variables)
+            if (context.expression() != null)
+            {
+                foreach (var argument in context.expression())
+                {
+                    var undeclaredIdentifiers = FindUndeclaredIdentifiers(argument);
+                    foreach (var identifier in undeclaredIdentifiers)
+                    {
+                        Errors.Add(new SyntaxError
+                        {
+                            Message = $"Error en línea {context.Start.Line}: El argumento '{identifier}' no está declarado.",
+                            Line = context.Start.Line,
+                            Column = context.Start.Column
+                        });
+                    }
+                }
+            }
+
+            return base.VisitFunctionCall(context);
+        }
 
 
 
+        private string GetLeftHandSideVariable(CustomLangParser.AssignmentContext context)
+        {
+            return context.ID()?.GetText() ??
+                   context.matrixAccess()?.ID()?.GetText() ??
+                   context.listAccess()?.ID()?.GetText();
+        }
+
+        private HashSet<string> FindUndeclaredIdentifiers(CustomLangParser.ExpressionContext expression)
+        {
+            var undeclared = new HashSet<string>();
+            if (expression == null) return undeclared;
+
+            if (expression.ID() != null)
+            {
+                string id = expression.ID().GetText();
+                if (!IsDeclared(id) && !IsKeyword(id)) undeclared.Add(id);
+            }
+            else if (expression.matrixAccess() != null)
+            {
+                string matrixId = expression.matrixAccess().ID()?.GetText();
+                if (!string.IsNullOrEmpty(matrixId) && !IsDeclared(matrixId) && !IsKeyword(matrixId)) undeclared.Add(matrixId);
+
+                undeclared.UnionWith(FindUndeclaredIdentifiers(expression.matrixAccess().expression(0)));
+                undeclared.UnionWith(FindUndeclaredIdentifiers(expression.matrixAccess().expression(1)));
+            }
+            else if (expression.listAccess() != null)
+            {
+                string listId = expression.listAccess().ID()?.GetText();
+                if (!string.IsNullOrEmpty(listId) && !IsDeclared(listId) && !IsKeyword(listId)) undeclared.Add(listId);
+
+                undeclared.UnionWith(FindUndeclaredIdentifiers(expression.listAccess().expression()));
+            }
+            else if (expression.subFunctionCall() != null)
+            {
+                string functionName = expression.subFunctionCall().ID()?.GetText();
+                if (!IsDeclared(functionName) && !IsKeyword(functionName)) undeclared.Add(functionName);
+
+                foreach (var arg in expression.subFunctionCall().expression() ?? Enumerable.Empty<CustomLangParser.ExpressionContext>())
+                {
+                    undeclared.UnionWith(FindUndeclaredIdentifiers(arg));
+                }
+            }
+
+            foreach (var subExpression in expression.expression())
+            {
+                undeclared.UnionWith(FindUndeclaredIdentifiers(subExpression));
+            }
+
+            return undeclared;
+        }
+
+        //====================
+
+
+        // Para los bloques IF, FOR, etc., también verificamos si las variables son accesibles
+        public override object VisitCaseStatement(CustomLangParser.CaseStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque CASE
+            scopeStack.Push(new ScopeInfo("Bloque CASE"));
+
+            base.VisitCaseStatement(context);
+
+            // Al salir del IF, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+
+        public override object VisitIfStatement(CustomLangParser.IfStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque IF
+            scopeStack.Push(new ScopeInfo("Bloque IF"));
+
+            base.VisitIfStatement(context);
+
+            // Al salir del IF, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+        public override object VisitIferrStatement(CustomLangParser.IferrStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque IFERR
+            scopeStack.Push(new ScopeInfo("Bloque IFERR"));
+
+            base.VisitIferrStatement(context);
+
+            // Al salir del IF, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+        public override object VisitForStatement(CustomLangParser.ForStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque FOR
+            scopeStack.Push(new ScopeInfo("Bloque FOR"));
+            base.VisitForStatement(context);
+
+            // Al salir del FOR, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+        public override object VisitWhileStatement(CustomLangParser.WhileStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque WHILE
+            scopeStack.Push(new ScopeInfo("Bloque WHILE"));
+
+            base.VisitWhileStatement(context);
+
+            // Al salir del WHILE, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+        public override object VisitRepeatStatement(CustomLangParser.RepeatStatementContext context)
+        {
+            // Crear un nuevo scope para el bloque REPEAT
+            scopeStack.Push(new ScopeInfo("Bloque REPEAT"));
+
+            base.VisitRepeatStatement(context);
+
+            // Al salir del REPEAT, eliminamos las variables locales de ese bloque
+            scopeStack.Pop();
+
+            return null;
+        }
+
+        // Clase para guardar información del scope o ID del bloque
+        private bool IsDeclared(string variableName)
+        {
+            // Verificar solo en variables globales, no en programas
+            return globalVariables.Contains(variableName) || scopeStack.Any(scope => scope.ContainsVariable(variableName));
+        }
+
+        private bool IsKeyword(string id)
+        {
+            return KeywordsAllComands.List.Contains(id);
+        }
+
+        private class ScopeInfo
+        {
+            public string Name { get; }
+            public HashSet<string> Variables { get; } = new HashSet<string>();
+
+            public ScopeInfo(string name)
+            {
+                Name = name;
+            }
+
+            public bool ContainsVariable(string variableName)
+            {
+                return Variables.Contains(variableName);
+            }
+        }
 
 
 
-    public partial class MainWindow 
+    }
+
+
+    //solo para testeo
+
+
+
+    public partial class MainWindow
     {
         private Popup tooltipPopup; // para popup tooltip
 
@@ -948,19 +1343,29 @@ namespace HP_PRIME_CODE
         // replegar
         private MyFoldingStrategy _foldingStrategy;
 
+        //Nuevo Dic 21 de 2024 
+        // PARA ACTUALIZACION
+        private UpdateManager _um;
+        private UpdateInfo _update;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            // Cargar Colores y Estylo ============
-            
+            // Para buscar Actualizaciones ============
+            string updateUrl = "https://github.com/pomaton12/HPPrimeEdit"; // replace with your update url
+            _um = new UpdateManager((new GithubSource(updateUrl, null, false)));
+
+            TextLog.Text = App.Log.ToString();
+            App.Log.LogUpdated += LogUpdated;
+            UpdateStatus();
 
 
- 
+
 
 
             // =========== AGregados 2024 ===============
- 
+
 
 
             //[2]Actualizar busqueda al cambiar pestaña 
@@ -988,7 +1393,7 @@ namespace HP_PRIME_CODE
             debounceTimer.Tick += DebounceTimer_Tick; // Evento que se dispara al finalizar el tiempo
 
         }
-        
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             try // Cargamos el CSV 
@@ -1127,7 +1532,8 @@ namespace HP_PRIME_CODE
 
                 uiMessageBox.ShowDialogAsync();
             }
-            else {
+            else
+            {
                 var uiMessageBox = new Wpf.Ui.Controls.MessageBox
                 {
                     Title = "Guardar",
@@ -1182,6 +1588,182 @@ namespace HP_PRIME_CODE
             }
         }
 
+        // PARA UNIR LINEAS
+        private void OnJoinLines_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            if (editor == null || editor.Document == null) return;
+
+            // Obtener todo el texto del editor
+            string text = editor.Document.Text;
+
+            // Paso 1: Proteger cadenas
+            var cadenas = new List<string>();
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"""[^""\\]*(?:\\.[^""\\]*)*""", // Encuentra cadenas completas
+                match =>
+                {
+                    cadenas.Add(match.Value); // Almacena la cadena
+                    return $"__CADENA_{cadenas.Count - 1}__"; // Reemplazo temporal
+                }
+            );
+
+            // Paso 2: Eliminar comentarios (// y /* ... */)
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"//.*?$|/\*.*?\*/",
+                "",
+                System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.Singleline
+            );
+
+            // Paso 3: Eliminar líneas vacías
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"^\s*$[\r\n]*",
+                "",
+                System.Text.RegularExpressions.RegexOptions.Multiline
+            );
+
+            // Paso 4: Reducir espacios múltiples a uno solo
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"\s{2,}",
+                " "
+            );
+
+            // Paso 5: Restaurar las cadenas protegidas
+            for (int i = 0; i < cadenas.Count; i++)
+            {
+                text = text.Replace($"__CADENA_{i}__", cadenas[i]);
+            }
+
+            // Paso 6: Unir líneas
+            string joinedText = text.Replace(Environment.NewLine, " ").Replace("\n", " ").Replace("\r", " ").Trim();
+
+            // Actualizar el texto del editor sin deshabilitar Undo/Redo
+            editor.Document.Replace(0, editor.Document.TextLength, joinedText);
+        }
+
+
+
+        // PARA UNIR EXPANDIR
+        //En tu manejador de eventos:
+        private void OnFormatLines_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
+
+            if (editor == null || editor.Document == null) return;
+
+            // Obtener todo el texto del editor
+            string text = editor.Document.Text;
+
+            // Paso 1: Proteger cadenas
+            var cadenas = new List<string>();
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"""[^""\\]*(?:\\.[^""\\]*)*""", // Encuentra cadenas completas
+                match =>
+                {
+                    cadenas.Add(match.Value); // Almacena la cadena
+                    return $"__CADENA_{cadenas.Count - 1}__"; // Reemplazo temporal
+                }
+            );
+
+            // Paso 2: Eliminar comentarios (// y /* ... */)
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"//.*?$|/\*.*?\*/",
+                "",
+                System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.Singleline
+            );
+
+            // Paso 3: Reducir espacios múltiples a uno solo
+            text = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"\s{2,}",
+                " "
+            );
+
+            // Paso 4: Dividir el texto en líneas formateadas
+            text = FormatText(text);
+
+            // Paso 5: Restaurar las cadenas protegidas
+            for (int i = 0; i < cadenas.Count; i++)
+            {
+                text = text.Replace($"__CADENA_{i}__", cadenas[i]);
+            }
+
+            // Actualizar el texto del editor sin deshabilitar Undo/Redo
+            editor.Document.Replace(0, editor.Document.TextLength, IndentarCodigo(text));
+        }
+
+        private string FormatText(string input)
+        {
+            // Lista para almacenar bloques protegidos
+            var bloquesProtegidos = new List<string>();
+
+            // Paso 1: Proteger bloques complejos como #pragma mode(...) incluso con saltos de línea
+            input = System.Text.RegularExpressions.Regex.Replace(
+                input,
+                @"#pragma\s+mode\s*\((?:[^()]*|\([^()]*\))*\)", // Detecta construcciones #pragma mode(...) incluso con saltos internos
+                match =>
+                {
+                    bloquesProtegidos.Add(match.Value.Replace("\n", " ").Replace("\r", " ")); // Almacena el bloque original en una sola línea
+                    return $"__BLOQUE__{bloquesProtegidos.Count - 1}__"; // Reemplaza por un marcador único
+                },
+                System.Text.RegularExpressions.RegexOptions.Singleline
+            );
+
+            // Definir las palabras clave que deben tener un salto de línea después de ellas
+            var keywords = new List<string> { "BEGIN", "CASE", "THEN", "DO", "REPEAT", "begin", "case", "then", "do", "repeat" };
+
+            // Paso 2: Insertar saltos de línea después de las palabras clave
+            foreach (var keyword in keywords)
+            {
+                input = System.Text.RegularExpressions.Regex.Replace(
+                    input,
+                    $@"\b{keyword}\b", // Buscar la palabra clave exacta
+                    match => $"{match.Value}\n" // Agregar un salto de línea después
+                );
+            }
+
+            // Paso 3: Insertar saltos de línea después de cada punto y coma (;)
+            input = System.Text.RegularExpressions.Regex.Replace(
+                input,
+                @";", // Buscar cada punto y coma
+                ";\n" // Reemplazarlo por sí mismo seguido de un salto de línea
+            );
+
+            // Paso 4: Insertar salto de línea después de ')' seguido de 'BEGIN', sin importar los espacios
+            input = System.Text.RegularExpressions.Regex.Replace(
+                input,
+                @"\)\s*BEGIN", // Buscar ')' seguido de cualquier cantidad de espacios y luego 'BEGIN'
+                match => $")\nBEGIN" // Insertar el salto de línea entre ')' y 'BEGIN'
+            );
+
+            // Paso 5: Restaurar los bloques protegidos
+            for (int i = 0; i < bloquesProtegidos.Count; i++)
+            {
+                input = input.Replace($"__BLOQUE__{i}__", bloquesProtegidos[i] + "\n"); // Restaura el bloque protegido y agrega el salto
+            }
+
+            // Paso 6: Eliminar espacios redundantes antes de los saltos de línea
+            input = System.Text.RegularExpressions.Regex.Replace(
+                input,
+                @"\s*\n",
+                "\n"
+            );
+
+            // Paso 7: Eliminar saltos de línea extras al inicio y al final del texto
+            input = input.Trim();
+
+            return input;
+        }
+
 
 
 
@@ -1192,17 +1774,37 @@ namespace HP_PRIME_CODE
         //
         //=========================================================================================
 
-        private void BotonMenu_ConfigOpen(object sender, RoutedEventArgs e)  // BOTON AUTOR
+        private void AbrirPanelConfiguracion_Click(object sender, RoutedEventArgs e)
         {
 
-            Panel_ConfigHP.Visibility = Visibility.Visible;
+            // Mostrar el panel de configuración
+            PanelConfiguracion.Visibility = Visibility.Visible;
+
+            // Ocultar el panel de actualizaciones si está abierto
+            PanelActualizaciones.Visibility = Visibility.Collapsed;
 
         }
-        private void BotonMenu_ConfigClose(object sender, RoutedEventArgs e)  // BOTON AUTOR
+
+        private void AbrirPanelActualizaciones_Click(object sender, RoutedEventArgs e)
         {
+            // Mostrar el panel de actualizaciones
+            PanelActualizaciones.Visibility = Visibility.Visible;
 
-            Panel_ConfigHP.Visibility = Visibility.Collapsed;
+            // Ocultar el panel de configuración si está abierto
+            PanelConfiguracion.Visibility = Visibility.Collapsed;
+        }
 
+
+        private void CerrarPanelConfiguracion_Click(object sender, RoutedEventArgs e)
+        {
+            // Ocultar el panel de configuración
+            PanelConfiguracion.Visibility = Visibility.Collapsed;
+        }
+
+        private void CerrarPanelActualizaciones_Click(object sender, RoutedEventArgs e)
+        {
+            // Ocultar el panel de actualizaciones
+            PanelActualizaciones.Visibility = Visibility.Collapsed;
         }
 
 
@@ -1222,7 +1824,7 @@ namespace HP_PRIME_CODE
             // Cambia el texto del TextBlock al activarse (Checked)
             if (sender is ToggleButton toggleButton)
             {
-                
+
                 toggleButton.ToolTip = "Mostrar Barra de Herramientas";
                 // Busca el TextBlock dentro del contenido del ToggleButton
                 if (toggleButton.Content is System.Windows.Controls.TextBlock textBlock)
@@ -1283,7 +1885,7 @@ namespace HP_PRIME_CODE
             TextEditor editor = GetActiveTextEditor();
 
             // Si el TextEditor tiene una selección válida, corta el texto
-            if (editor != null )
+            if (editor != null)
             {
                 editor.Cut();
             }
@@ -1295,7 +1897,7 @@ namespace HP_PRIME_CODE
             TextEditor editor = GetActiveTextEditor();
 
             // Si el TextEditor tiene una selección válida, copia el texto
-            if (editor != null )
+            if (editor != null)
             {
                 editor.Copy();
             }
@@ -1336,7 +1938,7 @@ namespace HP_PRIME_CODE
             TextEditor editor = GetActiveTextEditor();
 
             // Si el TextEditor tiene una selección válida, borra el texto seleccionado
-            if (editor != null )
+            if (editor != null)
             {
                 editor.Delete();
                 // Borra el texto seleccionado
@@ -1345,48 +1947,6 @@ namespace HP_PRIME_CODE
         }
 
 
-        private void AlinearButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = GetActiveTextEditor();
-
-            if (editor != null)
-            {
-                var code = editor.Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
-
-                var openedBlock = Refactoring.FormatLines(ref code, new string(' ', editor.Options.IndentationSize));
-
-                if (openedBlock != null)
-                {
-                    System.Windows.MessageBox.Show("Can't format the code because missing closing statements after:\n" + (openedBlock.Line + 1) + ": '" +
-                        code[openedBlock.Line].Trim().Trim(new[] { '\n', '\r' }) + "'\n\nPlease check your code and retry.", "Format document", System.Windows.MessageBoxButton.OK,
-                        MessageBoxImage.Exclamation);
-
-                    editor.Select(editor.Document.GetLineByNumber(openedBlock.Line + 1).Offset, editor.Document.GetLineByNumber(openedBlock.Line + 1).Length);
-                    editor.ScrollToLine(openedBlock.Line + 1);
-                }
-                else
-                {
-                    int selectionStart = editor.SelectionStart, selectionEnd = editor.SelectionLength;
-
-                    // Start a new undo group
-                    editor.Document.UndoStack.StartUndoGroup();
-
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < code.Count; i++)
-                    {
-                        sb.AppendLine(code[i]);
-                    }
-
-                    editor.Document.Text = sb.ToString();
-
-                    // End the undo group
-                    editor.Document.UndoStack.EndUndoGroup();
-
-                    editor.Select(selectionStart, selectionEnd);
-                }
-            }
-        }
 
 
         // Seleccion de Texto y sus variantes
@@ -1574,7 +2134,53 @@ namespace HP_PRIME_CODE
             var renderer = new HighlightCurrentLineBackgroundRenderer(editor, minimap);
             editor.TextArea.TextView.BackgroundRenderers.Add(renderer);
         }
+        //=========================================================================================
+        //
+        //                            PARA MANEJO CORRECTO DE IDETACION + REPLEGADO DE CODIGO
+        //
+        //=========================================================================================
+        private void AlinearButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtén el TextEditor de la pestaña activa
+            TextEditor editor = GetActiveTextEditor();
 
+            if (editor != null)
+            {
+                var code = editor.Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
+
+                var openedBlock = Refactoring.FormatLines(ref code, new string(' ', editor.Options.IndentationSize));
+
+                if (openedBlock != null)
+                {
+                    System.Windows.MessageBox.Show("Can't format the code because missing closing statements after:\n" + (openedBlock.Line + 1) + ": '" +
+                        code[openedBlock.Line].Trim().Trim(new[] { '\n', '\r' }) + "'\n\nPlease check your code and retry.", "Format document", System.Windows.MessageBoxButton.OK,
+                        MessageBoxImage.Exclamation);
+
+                    editor.Select(editor.Document.GetLineByNumber(openedBlock.Line + 1).Offset, editor.Document.GetLineByNumber(openedBlock.Line + 1).Length);
+                    editor.ScrollToLine(openedBlock.Line + 1);
+                }
+                else
+                {
+                    int selectionStart = editor.SelectionStart, selectionEnd = editor.SelectionLength;
+
+                    // Start a new undo group
+                    editor.Document.UndoStack.StartUndoGroup();
+
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < code.Count; i++)
+                    {
+                        sb.AppendLine(code[i]);
+                    }
+
+                    editor.Document.Text = sb.ToString();
+
+                    // End the undo group
+                    editor.Document.UndoStack.EndUndoGroup();
+
+                    editor.Select(selectionStart, selectionEnd);
+                }
+            }
+        }
 
 
         //=========================================================================================
@@ -1593,17 +2199,17 @@ namespace HP_PRIME_CODE
                 if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; CrearPestana(); }
                 if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; FuncionAbrir(); }
                 if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; FuncionGuardar(); }
-                if (e.Key == Key.S && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt)){e.Handled = true;FuncionGuardarComo();}
-                if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.IsKeyDown(Key.CapsLock)){e.Handled = true;FuncionGuardarTodo();}
+                if (e.Key == Key.S && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt)) { e.Handled = true; FuncionGuardarComo(); }
+                if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.IsKeyDown(Key.CapsLock)) { e.Handled = true; FuncionGuardarTodo(); }
 
                 // Comprueba si el usuario presionó Ctrl + F
-                if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control){e.Handled = true;FuncionBuscar();}
+                if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; FuncionBuscar(); }
                 if (e.Key == Key.H && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; FuncionReemplazar(); }
 
 
             }
         }
-          
+
         //=========================================================================================
         //
         //                            PARA FUNCION DE BUSCAR Y REEMPLAZAR
@@ -1623,7 +2229,7 @@ namespace HP_PRIME_CODE
         }
 
 
-        private void FuncionBuscar() 
+        private void FuncionBuscar()
         {
             // Obtén el TextEditor de la pestaña activa
             TextEditor editor = GetActiveTextEditor();
@@ -1728,7 +2334,7 @@ namespace HP_PRIME_CODE
                 TextSearchCollapse.Text = "\uE971";
                 PanelReplaceVisibility.Visibility = Visibility.Visible;
             }
-            else 
+            else
             {
                 TextSearchCollapse.Text = "\uE972";
                 PanelReplaceVisibility.Visibility = Visibility.Collapsed;
@@ -1934,7 +2540,7 @@ namespace HP_PRIME_CODE
         bool matchCase = Properties.Settings.Default.CaseSensitiveSearch;
         private void UpdateMatchCaseButtonColor()
         {
- 
+
             double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
             // Determina el color del borde según el tema
@@ -2206,7 +2812,7 @@ namespace HP_PRIME_CODE
                 HandleAutoIndentation(editor, e);
             }
         }
-        
+
         // Método para manejar el autocompletado
         private void HandleAutocomplete(TextEditor editor, TextCompositionEventArgs e)
         {
@@ -2267,15 +2873,15 @@ namespace HP_PRIME_CODE
                 data.Clear();
 
                 // Define los comandos y palabras clave predefinidos que deseas mostrar
-                string[] predefinedCommands = new string[] 
-                { 
+                string[] predefinedCommands = new string[]
+                {
                     "for","while","repeat", "FOR","WHILE","REPEAT",
                     "if", "case", "iferr","IF", "CASE", "IFERR",
-                    "begin", "BEGIN", "EXPORT","Function_Name", 
+                    "begin", "BEGIN", "EXPORT","Function_Name",
 
                 }; // Agrega más comandos aquí
 
-                string[] predefinedFunctions = new string[] 
+                string[] predefinedFunctions = new string[]
                 {
                     "for","while","repeat", "FOR","WHILE","REPEAT",
                     "if", "case", "iferr","IF", "CASE", "IFERR",
@@ -2291,7 +2897,7 @@ namespace HP_PRIME_CODE
                     data.Add(new MyCompletionData(command, "command")); // Agrega como comando
 
                 }
-                
+
                 foreach (string function in predefinedFunctions)
                 {
                     data.Add(new MyCompletionData(function, "function")); // Agrega como función
@@ -2654,7 +3260,7 @@ namespace HP_PRIME_CODE
             editor.Margin = new Thickness(0, 0, 0, 0);
             editor.Options.ConvertTabsToSpaces = true; // Usar espacios en lugar de tabulaciones
             editor.Options.IndentationSize = 4;
-            
+
 
 
             editor.Background = (Brush)Application.Current.Resources["EditorFillColor"];
@@ -2796,7 +3402,7 @@ namespace HP_PRIME_CODE
         //
         //=========================================================================================
         // Define Crear nuevo
- 
+
         // Método para crear una nueva pestaña
         private void NuevoButton_Click(object sender, RoutedEventArgs e)
         {
@@ -2857,7 +3463,7 @@ namespace HP_PRIME_CODE
             // Si se proporciona un archivo, cargar su contenido
             if (!string.IsNullOrEmpty(filePath))
             {
-                newEditor.Text = IndentarCodigo(HpprgmExtractor.ExtractLegibleText(filePath), "    ");
+                newEditor.Text = IndentarCodigo(HpprgmExtractor.ExtractLegibleText(filePath));
             }
 
             // Crear el modelo de datos para esta pestaña
@@ -2866,7 +3472,7 @@ namespace HP_PRIME_CODE
                 FilePath = filePath,
                 Header = header,
                 IsModified = false,
-                
+
             };
 
 
@@ -2881,7 +3487,7 @@ namespace HP_PRIME_CODE
             newTab.Content = newEditor;
             UpdateCloseIcon(tabFileData, newTab); // Actualiza el Boton 
             newTab.Tag = tabFileData;
-            
+
 
             // Añadir la pestaña al TabControl y seleccionarla
             Tabs.Add(newTab);
@@ -2890,7 +3496,7 @@ namespace HP_PRIME_CODE
 
 
 
-        public static string IndentarCodigo(string codigo, string indentacion)
+        public static string IndentarCodigo(string codigo)
         {
             // Normalizar saltos de línea a '\n'
             codigo = codigo.Replace("\r\n", "\n").Replace("\r", "\n");
@@ -2903,7 +3509,8 @@ namespace HP_PRIME_CODE
             foreach (var linea in lineas)
             {
                 // Agregar indentación y reconstruir las líneas
-                resultado.AppendLine(indentacion + linea.TrimStart());
+                //resultado.AppendLine(indentacion + linea.TrimStart());
+                resultado.AppendLine(linea.TrimStart());
             }
 
             return resultado.ToString();
@@ -2925,7 +3532,7 @@ namespace HP_PRIME_CODE
         }
 
 
-        private void FuncionGuardar() 
+        private void FuncionGuardar()
         {
             // Obtener la pestaña activa
             TabItem activeTab = (TabItem)tabControl.SelectedItem;
@@ -3017,7 +3624,7 @@ namespace HP_PRIME_CODE
 
             // Marca como no modificado
             fileData.IsModified = false;
-            
+
 
             // Actualiza el nombre del archivo en el encabezado de la pestaña
             fileData.Header = System.IO.Path.GetFileName(fileData.FilePath); // Establece el encabezado con el nombre del archivo
@@ -3065,7 +3672,7 @@ namespace HP_PRIME_CODE
 
                 // Marca como no modificado
                 fileData.IsModified = false;
-                
+
 
                 // Asigna el número de la pestaña actual al conjunto usedTabs
                 int? newTabNumber = GetTabNumberFromHeader(fileData.Header);
@@ -3089,7 +3696,7 @@ namespace HP_PRIME_CODE
             return false; // Guardado cancelado
         }
 
-        
+
         //BOTON IMPRIMIR
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
@@ -3110,7 +3717,7 @@ namespace HP_PRIME_CODE
                 printDialog.PrintDocument(paginator.DocumentPaginator, "Impresión del editor");
             }
         }
-        
+
 
 
 
@@ -3416,7 +4023,7 @@ namespace HP_PRIME_CODE
                     editor.TextArea.SelectionForeground = null;
 
                     // Obtener el TabItem y su modelo asociado
-                    if (editor != null  && tabItem.Tag is TabFileData tabData)
+                    if (editor != null && tabItem.Tag is TabFileData tabData)
                     {
 
                         UpdateCloseIcon(tabData, tabItem); // color que simula midificado
@@ -3480,19 +4087,19 @@ namespace HP_PRIME_CODE
             }
         } //Carga color de texto con thema
 
-        private void FillLavesAperurasYcierres(TextEditor actualEditor) 
+        private void FillLavesAperurasYcierres(TextEditor actualEditor)
         {
             double ThemeSelec = Properties.Settings.Default.TemaSettings;
             BracketColorizer bracketColorizer = new BracketColorizer(ThemeSelec);
             actualEditor.TextArea.TextView.LineTransformers.Add(bracketColorizer);
         } // carga colores de llaves
 
-        private void Funcion_LineaRango(TextEditor actualEditor) 
+        private void Funcion_LineaRango(TextEditor actualEditor)
         {
             actualEditor.TextArea.TextView.BackgroundRenderers.Add(new BlockScopeRenderer(actualEditor));
             actualEditor.TextArea.TextView.BackgroundRenderers.Add(new BlockHighlighter(actualEditor));
 
-            
+
         }// Indentation rango de coddigo
 
         private void Funcion_LineaMarcador(TextEditor actualEditor)
@@ -3526,7 +4133,7 @@ namespace HP_PRIME_CODE
         }// Mostrar panel hoover de comandos
 
 
-        private void Funcion_MenuContent(TextEditor actualEditor) 
+        private void Funcion_MenuContent(TextEditor actualEditor)
         {
             // Configura el ContextMenu
             actualEditor.ContextMenu = new ContextMenu();
@@ -3802,7 +4409,7 @@ namespace HP_PRIME_CODE
                 {
                     textBlock.Foreground = newForeground; // Cambiar el color del texto
                 }
-                
+
             }
         }
 
@@ -3819,15 +4426,43 @@ namespace HP_PRIME_CODE
         // Controla selecion de Item y salta a linea en panel de errores
         private void ErrorList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = GetActiveTextEditor();
-
-            // Obtener el error seleccionado
-            var errorSeleccionado = (SyntaxError)ErrorList.SelectedItem;
-            if (errorSeleccionado != null)
+            try
             {
+                // Obtén el TextEditor de la pestaña activa
+                TextEditor editor = GetActiveTextEditor();
+
+                if (editor == null)
+                {
+                    //MessageBox.Show("No hay un editor activo.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Obtener el error seleccionado
+                var errorSeleccionado = (SyntaxError)ErrorList.SelectedItem;
+
+                if (errorSeleccionado == null)
+                {
+                    //MessageBox.Show("No hay un error seleccionado.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (errorSeleccionado.Line <= 0 || errorSeleccionado.Column <= 0)
+                {
+                    //MessageBox.Show("La línea o columna del error no son válidas.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 // Calcular el offset para la posición exacta de línea y columna
-                int offset = editor.Document.GetOffset(errorSeleccionado.Line, errorSeleccionado.Column);
+                int offset;
+                try
+                {
+                    offset = editor.Document.GetOffset(errorSeleccionado.Line, errorSeleccionado.Column);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    //MessageBox.Show("La posición del error está fuera del rango del documento.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
                 // Mover el cursor al offset
                 editor.CaretOffset = offset;
@@ -3841,7 +4476,13 @@ namespace HP_PRIME_CODE
                 // Asegurar que el caret se muestre visiblemente
                 editor.TextArea.Caret.BringCaretToView();
             }
+            catch (Exception ex)
+            {
+                // Manejo general de errores para evitar el cierre inesperado
+                //MessageBox.Show($"Ocurrió un error al procesar el doble clic en la lista de errores: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
+
 
 
 
@@ -3873,6 +4514,7 @@ namespace HP_PRIME_CODE
         ////////// METODO ANTLR
         public List<SyntaxError> SyntaxErrors { get; set; } = new List<SyntaxError>();
 
+        /*
         private void AnalizarCodigoANTLR(TextEditor editor)
         {
             double ThemeSelected = Properties.Settings.Default.TemaSettings;
@@ -3917,7 +4559,7 @@ namespace HP_PRIME_CODE
                     string lineText = editor.Document.GetText(line);
 
                     // Revisa hacia atrás desde la columna del error
-                    int errorColumn = error.Column-1; // Columna basada en índice cero
+                    int errorColumn = error.Column - 1; // Columna basada en índice cero
                     int backwardIndex = errorColumn;
 
                     // Busca hacia atrás ignorando espacios en blanco
@@ -3962,66 +4604,110 @@ namespace HP_PRIME_CODE
             ErrorList.ItemsSource = SyntaxErrors;
         }
 
+        */
 
-
-
-        (int startOffset, int length) CalculateDynamicLength(TextEditor editor, int errorLine, int errorColumn)
+        private void AnalizarCodigoANTLR(TextEditor editor)
         {
-            // Obtener la línea del error
-            DocumentLine line = editor.Document.GetLineByNumber(errorLine);
+            double ThemeSelected = Properties.Settings.Default.TemaSettings;
 
-            if (line == null) return (0, 0); // Si la línea no existe, devolvemos valores por defecto
 
-            string lineText = editor.Document.GetText(line.Offset, line.Length); // Texto completo de la línea
+            string code = editor.Text;
 
-            // La posición del error en la línea (index basado en columna)
-            int errorIndex = errorColumn - 1; // `errorColumn` es 1-based, necesitamos convertirlo a 0-based
+            // Lexer y Parser
+            AntlrInputStream input = new AntlrInputStream(code);
+            CustomLangLexer lexer = new CustomLangLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CustomLangParser parser = new CustomLangParser(tokens);
 
-            // 1. Buscamos hacia atrás para encontrar el inicio del texto en la línea
-            int startIndex = errorIndex;
-            while (startIndex > 0 && !char.IsWhiteSpace(lineText[startIndex - 1]))
-            {
-                startIndex--; // Retrocedemos hasta encontrar el inicio del texto
-            }
+            // Análisis de errores sintácticos
+            SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+            parser.AddErrorListener(syntaxErrorListener);
+            CustomLangParser.ProgramContext tree = parser.program();
 
-            // 2. Si estamos al inicio de la línea o no hay texto hacia atrás, marcamos hacia adelante
-            int endIndex = errorIndex;
-            if (startIndex == errorIndex) // No hay texto hacia atrás, avanzamos hacia adelante
-            {
-                while (endIndex < lineText.Length && !char.IsWhiteSpace(lineText[endIndex]))
+            SyntaxErrors = syntaxErrorListener.Errors;
+     
+            // Análisis semántico con Visitor
+            var semanticAnalyzer = new SemanticAnalyzer();
+            semanticAnalyzer.Visit(tree);
+
+            // Combinar errores
+            var allErrors = SyntaxErrors.Concat(
+                semanticAnalyzer.Errors.Select(msg => new SyntaxError
                 {
-                    endIndex++; // Avanzamos hasta el final del texto en la línea
+                    Message = msg.Message,
+                    Line = msg.Line,
+                    Column = msg.Column
+                })
+            ).ToList();
+            
+
+            // Actualizar marcadores en el editor
+            var textMarkerService = editor.TextArea.TextView.Services.GetService(typeof(ITextMarkerService)) as ITextMarkerService;
+            textMarkerService.RemoveAll(m => true);
+
+            foreach (var error in SyntaxErrors)
+            {
+                int lineNumber = error.Line; // Número de línea donde ocurrió el error
+                DocumentLine line = editor.Document.GetLineByNumber(lineNumber);
+
+                if (line != null)
+                {
+                    int startOffset;
+                    int length;
+
+                    // Obtén el texto de la línea
+                    string lineText = editor.Document.GetText(line);
+
+                    // Revisa hacia atrás desde la columna del error
+                    int errorColumn = error.Column - 1; // Columna basada en índice cero
+                    int backwardIndex = errorColumn;
+
+                    // Busca hacia atrás ignorando espacios en blanco
+                    while (backwardIndex >= 0 && char.IsWhiteSpace(lineText[backwardIndex]))
+                    {
+                        backwardIndex--;
+                    }
+
+                    if (backwardIndex < 0)
+                    {
+                        // Caso 2: No hay texto útil hacia atrás, pinta desde la columna del error hasta el final de la línea
+                        startOffset = line.Offset + errorColumn;
+                        length = line.Length - errorColumn;
+                    }
+                    else
+                    {
+                        // Caso 1: Hay texto útil hacia atrás
+                        int firstNonWhiteIndex = backwardIndex;
+
+                        // Busca el inicio del texto útil en la línea
+                        while (firstNonWhiteIndex > 0 && !char.IsWhiteSpace(lineText[firstNonWhiteIndex - 1]))
+                        {
+                            firstNonWhiteIndex--;
+                        }
+
+                        startOffset = line.Offset + firstNonWhiteIndex; // Desde el inicio del texto útil
+                        length = errorColumn - firstNonWhiteIndex + 1;  // Hasta la columna del error (inclusiva)
+                    }
+
+                    // Crea el marcador con el rango calculado
+                    ITextMarker marker = textMarkerService.Create(startOffset, length);
+                    marker.MarkerTypes = TextMarkerTypes.SquigglyUnderline;
+                    marker.MarkerColor = ThemeSelected == 0 ? Colors.Red : Colors.OrangeRed;
+                    marker.ToolTip = error.Message;
                 }
             }
 
-            // 3. Calcular `startOffset` y `length`
-            int startOffset = line.Offset + startIndex; // Offset absoluto en el documento
-            int length = Math.Max(1, endIndex - startIndex); // Aseguramos que el marcador tenga al menos 1 carácter
+            editor.TextArea.TextView.Redraw();
 
-            return (startOffset, length);
+            // Actualizar lista de errores
+            ErrorList.ItemsSource = null;
+            ErrorList.ItemsSource = allErrors;
         }
-
 
 
         private void DepurarButon_click(object sender, RoutedEventArgs e)
         {
-            // Obtén el TextEditor de la pestaña activa
-            TextEditor editor = GetActiveTextEditor();
-            var textMarkerService = editor.TextArea.TextView.Services.GetService(typeof(ITextMarkerService)) as ITextMarkerService;
 
-            if (textMarkerService != null)
-            {
-                int startOffset = 0;
-                int length = Math.Min(10, editor.Document.TextLength);
-
-                var marker = textMarkerService.Create(startOffset, length);
-                marker.MarkerTypes = TextMarkerTypes.SquigglyUnderline;
-                marker.MarkerColor = Colors.Red;
-                marker.ToolTip = "Esto es una prueba";
-
-                Debug.WriteLine("Marcador de prueba creado");
-                editor.TextArea.TextView.Redraw();
-            }
         }
 
 
@@ -4044,7 +4730,7 @@ namespace HP_PRIME_CODE
                 LabelLinCol.Text = $"Línea: {line}  Columna: {column}";
             }
         }
-   
+
 
 
 
@@ -4267,6 +4953,105 @@ namespace HP_PRIME_CODE
 
         */
 
+        //=========================================================================================
+        //
+        //    ******** ACTUALIZACIONES DE PROGRAMA 
+        //
+        //=========================================================================================
+        //********************************************************************************************
+
+        private async void BtnCheckUpdateClick(object sender, RoutedEventArgs e)
+        {
+            Working();
+            try
+            {
+                // ConfigureAwait(true) so that UpdateStatus() is called on the UI thread
+                _update = await _um.CheckForUpdatesAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                App.Log.LogError(ex, "Error checking for updates");
+            }
+            UpdateStatus();
+        }
+
+        private async void BtnDownloadUpdateClick(object sender, RoutedEventArgs e)
+        {
+            Working();
+            try
+            {
+                // ConfigureAwait(true) so that UpdateStatus() is called on the UI thread
+                await _um.DownloadUpdatesAsync(_update, Progress).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                App.Log.LogError(ex, "Error downloading updates");
+            }
+            UpdateStatus();
+        }
+
+        private void BtnRestartApplyClick(object sender, RoutedEventArgs e)
+        {
+            _um.ApplyUpdatesAndRestart(_update);
+        }
+
+        private void LogUpdated(object sender, LogUpdatedEventArgs e)
+        {
+            // logs can be sent from other threads
+            this.Dispatcher.InvokeAsync(() =>
+            {
+                TextLog.Text = e.Text;
+                ScrollLog.ScrollToEnd();
+            });
+        }
+
+        private void Progress(int percent)
+        {
+            // progress can be sent from other threads
+            this.Dispatcher.InvokeAsync(() =>
+            {
+                TextStatus.Text = $"Downloading ({percent}%)...";
+            });
+        }
+
+        private void Working()
+        {
+            App.Log.LogInformation("");
+            BtnCheckUpdate.IsEnabled = false;
+            BtnDownloadUpdate.IsEnabled = false;
+            BtnRestartApply.IsEnabled = false;
+            TextStatus.Text = "Working...";
+        }
+
+        private void UpdateStatus()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Velopack version: {VelopackRuntimeInfo.VelopackNugetVersion}");
+            sb.AppendLine($"This app version: {(_um.IsInstalled ? _um.CurrentVersion : "(n/a - not installed)")}");
+
+            if (_update != null)
+            {
+                sb.AppendLine($"Update available: {_update.TargetFullRelease.Version}");
+                BtnDownloadUpdate.IsEnabled = true;
+            }
+            else
+            {
+                BtnDownloadUpdate.IsEnabled = false;
+            }
+
+            if (_um.UpdatePendingRestart != null)
+            {
+                sb.AppendLine("Update ready, pending restart to install");
+                BtnRestartApply.IsEnabled = true;
+            }
+            else
+            {
+                BtnRestartApply.IsEnabled = false;
+            }
+
+            TextStatus.Text = sb.ToString();
+            BtnCheckUpdate.IsEnabled = true;
+        }
 
 
 

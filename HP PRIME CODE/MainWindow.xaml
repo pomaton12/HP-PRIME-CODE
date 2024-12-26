@@ -160,11 +160,12 @@
                                         </MenuItem>
                                     </MenuItem>
                                     <MenuItem Header="{DynamicResource textAvanzados}">
-                                        <MenuItem Header="Dar Formato al Documento"  >
+                                        <MenuItem Header="Dar Formato al Documento" Click="AlinearButton_Click" >
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoAlinear}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
                                         </MenuItem>
+                                        <Separator />
                                         <MenuItem Header="Contraer Bloques" Click="FoldAll_Click" >
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoUnExpand}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -174,6 +175,23 @@
                                             <MenuItem.Icon>
                                                 <Image Source="{DynamicResource IconoExpand}" Width="16"  Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Manejo de Lineas"  >
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xe927;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorW11Verde}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </MenuItem.Icon>
+                                            <MenuItem Header="Limpiar Comentarios"  Click="UnfoldAll_Click">
+
+                                            </MenuItem>
+                                            <MenuItem Header="Eliminar lineas vacias"  Click="UnfoldAll_Click">
+
+                                            </MenuItem>
+                                            <MenuItem Header="Unir Lineas"  Click="OnJoinLines_Click">
+
+                                            </MenuItem>
+                                            <MenuItem Header="Expandir Lineas"  Click="OnFormatLines_Click">
+
+                                            </MenuItem>
                                         </MenuItem>
                                     </MenuItem>
                                     <MenuItem Header="{DynamicResource textDepurar}">
@@ -228,7 +246,7 @@
                                     FontSize="16" />
                                 </ToggleButton>
 
-                                <Button VerticalAlignment="Center"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Configuración" Click="BotonMenu_ConfigOpen" >
+                                <Button VerticalAlignment="Center"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Configuración" Click="AbrirPanelConfiguracion_Click" >
                                     <TextBlock  Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"  />
                                 </Button>
                             </StackPanel>
@@ -347,18 +365,6 @@
                                 </StackPanel>
                             </Button>
 
-
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
-
-
-                            <Button x:Name="cbbtn_send" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Enviar a Emulador"  >
-                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                                    <svgc:SvgViewbox  Source="/Imagen/Inicio/send_light.svg" Width="18" Height="18"   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-                                </StackPanel>
-                            </Button>
-
                             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
 
 
@@ -381,15 +387,13 @@
 
                             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{DynamicResource ColorLineTools}" Margin="9 9 " />
 
-
-                            <Button  x:Name="cbbtn_aling" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Ordenar Codigo" Click="AlinearButton_Click"  >
+                            <Button x:Name="cbbtn_send" Style="{StaticResource menuButtonVigaVerti}"  Width="35" Height="35"  VerticalAlignment="Center"  ToolTip="Enviar a Emulador"  >
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                    <Image Source="{DynamicResource IconoAlinear}" Width="18" Height="18"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <svgc:SvgViewbox  Source="/Imagen/Inicio/send_light.svg" Width="18" Height="18"   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 </StackPanel>
                             </Button>
-
 
 
 
@@ -727,7 +731,7 @@
     
                     </Grid>
 
-                    <Grid Grid.Column="1" x:Name="Panel_ConfigHP"  Width="335" Visibility="Collapsed">
+                    <Grid Grid.Column="1" x:Name="PanelConfiguracion"  Width="335" Visibility="Collapsed">
 
                         <Border 
                             Margin="5" 
@@ -778,7 +782,7 @@
                                                 Height="30"
                                                 Width="40"
                                                 Grid.Column="1"
-                                                Click="BotonMenu_ConfigClose"
+                                                Click="CerrarPanelConfiguracion_Click"
                                                 Style="{StaticResource DesgloseButtonHP}"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Top">
@@ -950,6 +954,97 @@
 
                     </Grid>
 
+                    <Grid Grid.Column="1" x:Name="PanelActualizaciones"  Width="335" Visibility="Collapsed">
+
+                        <Border 
+                            Margin="5" 
+                            CornerRadius="7" 
+                            BorderThickness="1" 
+                            BorderBrush="{DynamicResource ColorContextBorde}">
+
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" BlurRadius="50" RenderingBias="Quality" Direction="270" ShadowDepth="0" Opacity="0.3"/>
+                            </Border.Effect>
+
+                            <Grid >
+
+                                <Border CornerRadius="7" Background="{DynamicResource ColorCustomTheme}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="*"/>
+
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0">
+
+                                            <Grid.ColumnDefinitions>
+
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="15 0 0 0" Text="&#xe713;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="{DynamicResource ColorIconNormal}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"  />
+
+
+                                                <TextBlock 
+                                                        Grid.Column="0"
+                                                        FontSize="13"
+                                                        Margin="15 0 0 0"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center"
+                                                        FontFamily="Segoe UI"
+                                                        Text="Notificaciones"/>
+                                            </StackPanel>
+
+
+                                            <Button 
+                                                Height="30"
+                                                Width="40"
+                                                Grid.Column="1"
+                                                Click="CerrarPanelActualizaciones_Click"
+                                                Style="{StaticResource DesgloseButtonHP}"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top">
+
+                                                <TextBlock  Text="&#xE8BB;" FontFamily="{StaticResource SegoeFluentIcons}"  VerticalAlignment="Stretch" HorizontalAlignment="Center" FontSize="10"  />
+                                            </Button>
+                                        </Grid>
+
+                                        <!--Poner grid de actualizaciones aqui-->
+                                        <Grid Grid.Row="1">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="15" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Margin="10" Name="TextStatus" />
+                                                <StackPanel Orientation="Horizontal" Margin="10">
+                                                    <Button Name="BtnCheckUpdate" Content="Check for Updates" Click="BtnCheckUpdateClick" Padding="10,5" />
+                                                    <Button Margin="10,0" Name="BtnDownloadUpdate" Content="Download" Click="BtnDownloadUpdateClick" Padding="10,5" IsEnabled="False" />
+                                                    <Button Name="BtnRestartApply" Content="Restart &amp; Apply" Click="BtnRestartApplyClick" Padding="10,5" IsEnabled="False" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <ScrollViewer Name="ScrollLog" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
+                                                <TextBlock Name="TextLog" Background="DarkGoldenrod" Foreground="White" TextWrapping="Wrap" />
+                                            </ScrollViewer>
+                                        </Grid>
+
+                                    </Grid>
+
+                                </Border>
+
+
+                            </Grid>
+
+                        </Border>
+
+
+                    </Grid>
 
 
                 </Grid>
@@ -960,21 +1055,21 @@
             
             
 
-            <Border Grid.Row="3" Background="#006CBE"  BorderThickness="0 0 0 0">
+            <Border Grid.Row="3" Background="#006CBE" HorizontalAlignment="Stretch" BorderThickness="0 0 0 0">
                 <Grid   >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
 
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
 
 
-                        <TextBlock Text="Version: 0.5.5" Margin="10 0 0 0" FontSize="12" VerticalAlignment="Center" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Version: 1.0.4" Margin="10 0 0 0" FontSize="12" VerticalAlignment="Center" Foreground="#FFFFFF"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal">
@@ -983,6 +1078,15 @@
 
                         <TextBlock Text="HP Prime Language" FontSize="12" VerticalAlignment="Center" Foreground="#FFFFFF"/>
                     </StackPanel>
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+
+                        <Button VerticalAlignment="Center"  Style="{StaticResource DesgloseButton}"  HorizontalAlignment="Right" Width="25" Height="25" ToolTip="Configuración" Click="AbrirPanelActualizaciones_Click" >
+                            <TextBlock  Text="&#xe1CC;" FontFamily="{StaticResource SegoeFluentIcons}" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"  />
+                        </Button>                    
+                        
+                    </StackPanel>
+
                 </Grid>
             </Border>
 

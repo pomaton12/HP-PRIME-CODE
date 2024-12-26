@@ -11,7 +11,7 @@ namespace HP_PRIME_CODE.UtilityAvalonEdit
     //Espacio en condicionales
     public class MyIndentationStrategy : IIndentationStrategy
     {
-        private readonly string _indentation; // Define el carácter de indentación
+        private readonly string _indentation;
 
         public MyIndentationStrategy(string indentation = "\t")
         {
@@ -20,32 +20,29 @@ namespace HP_PRIME_CODE.UtilityAvalonEdit
 
         public void IndentLine(TextDocument document, DocumentLine line)
         {
-            // Texto de la línea actual
-            var lineText = document.GetText(line);
+            string lineText = document.GetText(line);
+            if (string.IsNullOrWhiteSpace(lineText)) return;
 
-            // Verifica si la línea está vacía o solo contiene espacios
-            if (string.IsNullOrWhiteSpace(lineText))
-                return;
+            // Obtener la indentación de la línea actual
+            int currentIndentation = lineText.TakeWhile(char.IsWhiteSpace).Count();
 
-            // Calcula la indentación correcta usando Refactoring
-            var lines = document.Lines.Select(l => document.GetText(l)).ToList();
-            Refactoring.FormatLines(ref lines, _indentation);
-
-            // Obtiene la indentación calculada para la línea actual
-            var targetIndentation = lines[line.LineNumber - 1]
-                .TakeWhile(char.IsWhiteSpace)
-                .Count();
-
-            // Genera la nueva cadena de indentación
-            var newIndentation = new string('\t', targetIndentation);
-
-            // Obtiene la indentación actual de la línea
-            var currentIndentation = new string(lineText.TakeWhile(char.IsWhiteSpace).ToArray());
-
-            // Reemplaza la indentación si es diferente
-            if (newIndentation != currentIndentation)
+            // Determinar la indentación correcta en base a la línea anterior (o por defecto a 0)
+            int newIndentation = 0;
+            DocumentLine prevLine = document.GetLineByNumber(line.LineNumber - 1);
+            if (prevLine != null)
             {
-                document.Replace(line.Offset, currentIndentation.Length, newIndentation);
+                string prevLineText = document.GetText(prevLine);
+                newIndentation = prevLineText.TakeWhile(char.IsWhiteSpace).Count() + _indentation.Length; // Agregar indentación en base a la línea anterior
+                                                                                                          //Agregar lógica aquí para manejar corchetes de apertura/cierre y otros casos
+            }
+
+            // Generar la nueva cadena de indentación
+            string newIndentationString = new string(' ', newIndentation);
+
+            // Reemplazar la indentación si es diferente
+            if (newIndentationString.Length != currentIndentation)
+            {
+                document.Replace(line.Offset, currentIndentation, newIndentationString);
             }
         }
 

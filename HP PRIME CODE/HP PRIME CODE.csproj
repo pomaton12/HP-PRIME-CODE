@@ -8,7 +8,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Imagen\Hp_Prime_ico.ico</ApplicationIcon>
+	<StartupObject>HP_PRIME_CODE.App</StartupObject>
   </PropertyGroup>
+
+<ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+</ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <IsPublishable>True</IsPublishable>
@@ -20,7 +26,6 @@
 
   <ItemGroup>
     <None Remove="Documents\Snippets.csv" />
-    <None Remove="Documents\Snippets.xlsx" />
     <None Remove="FuentesIcon\CascadiaMono-ExtraLight.otf" />
     <None Remove="FuentesIcon\CascadiaMono-Light.otf" />
     <None Remove="FuentesIcon\CascadiaMono-Regular.otf" />
@@ -99,9 +104,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Documents\Snippets.xlsx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Resource Include="FuentesIcon\CascadiaMono-ExtraLight.otf" />
     <Resource Include="FuentesIcon\CascadiaMono-Light.otf" />
     <Resource Include="FuentesIcon\CascadiaMono-SemiLight.otf" />
@@ -172,9 +174,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Estilo\HPPPL_Light.xshd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FilesNuevo\NewCodeHP.hpprgm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Properties\Settings.settings">

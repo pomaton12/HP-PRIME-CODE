@@ -91,29 +91,25 @@ public interface ICustomLangListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitIntegerType([NotNull] CustomLangParser.IntegerTypeContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>Asignar_Valor</c>
-	/// labeled alternative in <see cref="CustomLangParser.globalVariableDeclaration"/>.
+	/// Enter a parse tree produced by <see cref="CustomLangParser.globalVariableDeclaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterAsignar_Valor([NotNull] CustomLangParser.Asignar_ValorContext context);
+	void EnterGlobalVariableDeclaration([NotNull] CustomLangParser.GlobalVariableDeclarationContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>Asignar_Valor</c>
-	/// labeled alternative in <see cref="CustomLangParser.globalVariableDeclaration"/>.
+	/// Exit a parse tree produced by <see cref="CustomLangParser.globalVariableDeclaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitAsignar_Valor([NotNull] CustomLangParser.Asignar_ValorContext context);
+	void ExitGlobalVariableDeclaration([NotNull] CustomLangParser.GlobalVariableDeclarationContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>Declarar_Funcion</c>
-	/// labeled alternative in <see cref="CustomLangParser.functionDeclaration"/>.
+	/// Enter a parse tree produced by <see cref="CustomLangParser.functionDeclaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterDeclarar_Funcion([NotNull] CustomLangParser.Declarar_FuncionContext context);
+	void EnterFunctionDeclaration([NotNull] CustomLangParser.FunctionDeclarationContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>Declarar_Funcion</c>
-	/// labeled alternative in <see cref="CustomLangParser.functionDeclaration"/>.
+	/// Exit a parse tree produced by <see cref="CustomLangParser.functionDeclaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitDeclarar_Funcion([NotNull] CustomLangParser.Declarar_FuncionContext context);
+	void ExitFunctionDeclaration([NotNull] CustomLangParser.FunctionDeclarationContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="CustomLangParser.functionDefinition"/>.
 	/// </summary>
@@ -165,15 +161,15 @@ public interface ICustomLangListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitVariableDeclarator([NotNull] CustomLangParser.VariableDeclaratorContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="CustomLangParser.assignLocal"/>.
+	/// Enter a parse tree produced by <see cref="CustomLangParser.assignInit"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterAssignLocal([NotNull] CustomLangParser.AssignLocalContext context);
+	void EnterAssignInit([NotNull] CustomLangParser.AssignInitContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="CustomLangParser.assignLocal"/>.
+	/// Exit a parse tree produced by <see cref="CustomLangParser.assignInit"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitAssignLocal([NotNull] CustomLangParser.AssignLocalContext context);
+	void ExitAssignInit([NotNull] CustomLangParser.AssignInitContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="CustomLangParser.assignment"/>.
 	/// </summary>
@@ -255,30 +251,6 @@ public interface ICustomLangListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitRepeatStatement([NotNull] CustomLangParser.RepeatStatementContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>PrintConParentesis</c>
-	/// labeled alternative in <see cref="CustomLangParser.printStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterPrintConParentesis([NotNull] CustomLangParser.PrintConParentesisContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>PrintConParentesis</c>
-	/// labeled alternative in <see cref="CustomLangParser.printStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitPrintConParentesis([NotNull] CustomLangParser.PrintConParentesisContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>PrintSinParentesis</c>
-	/// labeled alternative in <see cref="CustomLangParser.printStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterPrintSinParentesis([NotNull] CustomLangParser.PrintSinParentesisContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>PrintSinParentesis</c>
-	/// labeled alternative in <see cref="CustomLangParser.printStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitPrintSinParentesis([NotNull] CustomLangParser.PrintSinParentesisContext context);
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="CustomLangParser.functionCall"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -288,6 +260,16 @@ public interface ICustomLangListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitFunctionCall([NotNull] CustomLangParser.FunctionCallContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="CustomLangParser.subCasFunctionCall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterSubCasFunctionCall([NotNull] CustomLangParser.SubCasFunctionCallContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="CustomLangParser.subCasFunctionCall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitSubCasFunctionCall([NotNull] CustomLangParser.SubCasFunctionCallContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="CustomLangParser.subFunctionCall"/>.
 	/// </summary>
@@ -349,221 +331,15 @@ public interface ICustomLangListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitStoreStatement([NotNull] CustomLangParser.StoreStatementContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>Suma_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
+	/// Enter a parse tree produced by <see cref="CustomLangParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterSuma_de_lista([NotNull] CustomLangParser.Suma_de_listaContext context);
+	void EnterExpression([NotNull] CustomLangParser.ExpressionContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>Suma_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
+	/// Exit a parse tree produced by <see cref="CustomLangParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitSuma_de_lista([NotNull] CustomLangParser.Suma_de_listaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>ParentesisExpression</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterParentesisExpression([NotNull] CustomLangParser.ParentesisExpressionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>ParentesisExpression</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitParentesisExpression([NotNull] CustomLangParser.ParentesisExpressionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>ComplexStructures</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterComplexStructures([NotNull] CustomLangParser.ComplexStructuresContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>ComplexStructures</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitComplexStructures([NotNull] CustomLangParser.ComplexStructuresContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Sumatoria</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterSumatoria([NotNull] CustomLangParser.SumatoriaContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Sumatoria</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitSumatoria([NotNull] CustomLangParser.SumatoriaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>UnaryLogical</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterUnaryLogical([NotNull] CustomLangParser.UnaryLogicalContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>UnaryLogical</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitUnaryLogical([NotNull] CustomLangParser.UnaryLogicalContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>BasicValues</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterBasicValues([NotNull] CustomLangParser.BasicValuesContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>BasicValues</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitBasicValues([NotNull] CustomLangParser.BasicValuesContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>SingleRelational</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterSingleRelational([NotNull] CustomLangParser.SingleRelationalContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>SingleRelational</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitSingleRelational([NotNull] CustomLangParser.SingleRelationalContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Producto_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterProducto_de_lista([NotNull] CustomLangParser.Producto_de_listaContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Producto_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitProducto_de_lista([NotNull] CustomLangParser.Producto_de_listaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Integracion</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterIntegracion([NotNull] CustomLangParser.IntegracionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Integracion</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitIntegracion([NotNull] CustomLangParser.IntegracionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Primeras_diferencias_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterPrimeras_diferencias_de_lista([NotNull] CustomLangParser.Primeras_diferencias_de_listaContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Primeras_diferencias_de_lista</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitPrimeras_diferencias_de_lista([NotNull] CustomLangParser.Primeras_diferencias_de_listaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Exponentiation</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExponentiation([NotNull] CustomLangParser.ExponentiationContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Exponentiation</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExponentiation([NotNull] CustomLangParser.ExponentiationContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>Derivada</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterDerivada([NotNull] CustomLangParser.DerivadaContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>Derivada</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitDerivada([NotNull] CustomLangParser.DerivadaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>RaizCuadrada</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterRaizCuadrada([NotNull] CustomLangParser.RaizCuadradaContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>RaizCuadrada</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitRaizCuadrada([NotNull] CustomLangParser.RaizCuadradaContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>LogicalExpression</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterLogicalExpression([NotNull] CustomLangParser.LogicalExpressionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>LogicalExpression</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitLogicalExpression([NotNull] CustomLangParser.LogicalExpressionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>AdditionOrSubtraction</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterAdditionOrSubtraction([NotNull] CustomLangParser.AdditionOrSubtractionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>AdditionOrSubtraction</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitAdditionOrSubtraction([NotNull] CustomLangParser.AdditionOrSubtractionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>UnaryNegation</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterUnaryNegation([NotNull] CustomLangParser.UnaryNegationContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>UnaryNegation</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitUnaryNegation([NotNull] CustomLangParser.UnaryNegationContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>MultiplicationOrDivision</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterMultiplicationOrDivision([NotNull] CustomLangParser.MultiplicationOrDivisionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>MultiplicationOrDivision</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitMultiplicationOrDivision([NotNull] CustomLangParser.MultiplicationOrDivisionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>FunctionAccess</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterFunctionAccess([NotNull] CustomLangParser.FunctionAccessContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>FunctionAccess</c>
-	/// labeled alternative in <see cref="CustomLangParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitFunctionAccess([NotNull] CustomLangParser.FunctionAccessContext context);
+	void ExitExpression([NotNull] CustomLangParser.ExpressionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="CustomLangParser.array"/>.
 	/// </summary>
